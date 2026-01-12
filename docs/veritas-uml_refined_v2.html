@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Veritas UML Class Diagram</title>
+  <style>
+
+    :root{
+      --bg:#f8fafc;
+      --surface:#ffffff;
+      --surface-2:#f1f5f9;
+      --ink:#0f172a;
+      --ink-soft:#334155;
+      --muted:#475569;
+      --muted-2:#64748b;
+      --border:#e2e8f0;
+      --shadow:0 2px 12px rgba(15, 23, 42, 0.10);
+
+      /* readability controls */
+      --font-mult:1;
+      --stroke-mult:1.35;
+
+      /* relationship line color (overrides the lighter default) */
+      --rel-stroke:#334155;
+      --rel-fill:#334155;
+    }
+
+    /* Toggles */
+    body.large-text{
+      --font-mult:1.22;
+    }
+    body.high-contrast{
+      --bg:#ffffff;
+      --surface:#ffffff;
+      --surface-2:#e2e8f0;
+      --ink:#020617;
+      --ink-soft:#0f172a;
+      --muted:#0f172a;
+      --muted-2:#334155;
+      --border:#cbd5e1;
+      --shadow:0 2px 16px rgba(2, 6, 23, 0.18);
+
+      --stroke-mult:1.55;
+      --rel-stroke:#0f172a;
+      --rel-fill:#0f172a;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    .container {
+      max-width: 1800px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      color: var(--ink);
+      font-size: 2rem;
+      margin-bottom: 0.25rem;
+    }
+    .subtitle {
+      text-align: center;
+      color: var(--muted-2);
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+    }
+
+    .diagram-toolbar{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+      margin: 0 0 12px 0;
+    }
+    .toolbar-group{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .toolbar-btn{
+      appearance:none;
+      border:1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--ink);
+      padding: 8px 10px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 650;
+      cursor:pointer;
+      line-height: 1;
+    }
+    .toolbar-btn:hover{ filter: brightness(0.98); }
+    .toolbar-btn:active{ transform: translateY(1px); }
+    .toolbar-btn:focus-visible{
+      outline: 2px solid var(--ink-soft);
+      outline-offset: 2px;
+    }
+    .toolbar-btn[aria-pressed="true"]{
+      background: var(--ink);
+      color: #ffffff;
+      border-color: var(--ink);
+    }
+    .toolbar-hint{
+      color: var(--muted-2);
+      font-size: 0.85rem;
+    }
+
+    .diagram-container {
+      background: var(--surface);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      overflow: auto; /* allow both horizontal + vertical scroll */
+    }
+
+    /* Make the SVG readable on narrow screens by preventing it from shrinking too small */
+    .diagram-container svg{
+      width: 100%;
+      height: auto;
+      min-width: 1720px;
+      display:block;
+      user-select:none;
+      touch-action:none;
+      cursor: grab;
+    }
+
+    /* Improve readability when zoomed: keep line weights consistent */
+    .diagram-container svg line,
+    .diagram-container svg path,
+    .diagram-container svg rect,
+    .diagram-container svg polygon{
+      vector-effect: non-scaling-stroke;
+    }
+
+    /* Darken relationship lines/arrows (original uses a light slate) */
+    .diagram-container svg [stroke="#64748b"]{ stroke: var(--rel-stroke); }
+    .diagram-container svg [fill="#64748b"]{ fill: var(--rel-fill); }
+
+    /* Thicken common strokes */
+    .diagram-container svg [stroke-width="1.5"]{
+      stroke-width: calc(1.5px * var(--stroke-mult));
+    }
+
+    /* Slight label outline so text stays readable over lines */
+    .diagram-container svg text{
+      paint-order: stroke;
+      stroke: rgba(255,255,255,0.85);
+      stroke-width: 2;
+      stroke-linejoin: round;
+    }
+
+    /* Edge relationship labels: add a small pill behind text so labels don't get lost */
+    .diagram-container svg .edge-label rect{
+      fill: rgba(255,255,255,0.94);
+      stroke: var(--border);
+      stroke-width: calc(1px * var(--stroke-mult));
+    }
+    body.high-contrast .diagram-container svg .edge-label rect{
+      fill: rgba(255,255,255,0.98);
+      stroke: var(--ink-soft);
+    }
+    .diagram-container svg .edge-label text{
+      fill: var(--ink-soft);
+      font-weight: 650;
+      /* override the global text outline (the pill provides contrast) */
+      stroke: rgba(255,255,255,0);
+      paint-order: normal;
+    }
+
+
+    /* Bump text sizes (mapped from existing per-element font-size attributes) */
+    .diagram-container svg text[font-size="10"]{ font-size: calc(11px * var(--font-mult)); }
+    .diagram-container svg text[font-size="11"]{ font-size: calc(12.5px * var(--font-mult)); }
+    .diagram-container svg text[font-size="12"]{ font-size: calc(13.75px * var(--font-mult)); }
+    .diagram-container svg text[font-size="13"]{ font-size: calc(15px * var(--font-mult)); }
+    .diagram-container svg text[font-size="14"]{ font-size: calc(16.5px * var(--font-mult)); }
+
+    /* Legend */
+    .legend-box {
+      margin-top: 20px;
+      padding: 16px;
+      background: var(--surface);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+    .legend-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--ink-soft);
+    }
+    .legend-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 12px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.925rem;
+      color: var(--muted);
+    }
+    .legend-symbol {
+      width: 60px;
+      height: 24px;
+      flex: 0 0 auto;
+    }
+
+    @media (max-width: 640px){
+      body{ padding: 16px; }
+      h1{ font-size: 1.6rem; }
+      .toolbar-hint{ display:none; }
+    }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Veritas UML Class Diagram</h1>
+    <p class="subtitle">V4.0 — Entity Classes & Relationships</p>
+    
+
+    <div class="diagram-toolbar" role="toolbar" aria-label="Diagram controls">
+      <div class="toolbar-group">
+        <button class="toolbar-btn" id="zoomInBtn" type="button" title="Zoom in">Zoom in</button>
+        <button class="toolbar-btn" id="zoomOutBtn" type="button" title="Zoom out">Zoom out</button>
+        <button class="toolbar-btn" id="resetZoomBtn" type="button" title="Reset view">Reset</button>
+      </div>
+      <div class="toolbar-group">
+        <button class="toolbar-btn" id="largeTextBtn" type="button" aria-pressed="false" title="Increase label sizes">Large text</button>
+        <button class="toolbar-btn" id="highContrastBtn" type="button" aria-pressed="false" title="Increase contrast">High contrast</button>
+      </div>
+      <div class="toolbar-hint">Tip: Drag to pan • Hold Ctrl/Cmd + scroll to zoom</div>
+    </div>
+    <div class="diagram-container">
+      <svg id="umlSvg" viewBox="-70 0 1720 1400" width="100%" height="auto" preserveAspectRatio="xMinYMin meet">
+
+        <!-- ========== ROW 1: Like, User, Follow ========== -->
+        
+        <!-- LIKE CLASS -->
+        <g transform="translate(50, 40)">
+          <rect x="0" y="0" width="210" height="32" rx="4" fill="#f1f5f9" stroke="#334155" stroke-width="1.5"/>
+          <rect x="0" y="32" width="210" height="88" fill="white" stroke="#334155" stroke-width="1.5"/>
+          <rect x="0" y="116" width="210" height="4" fill="#334155" rx="0 0 4 4"/>
+          
+          <text x="105" y="22" text-anchor="middle" font-weight="bold" font-size="14" fill="#1e293b">Like</text>
+          
+          <text x="12" y="56" font-size="11" font-family="monospace" fill="#334155" font-weight="bold">+ userId: UUID «PK,FK»</text>
+          <text x="12" y="78" font-size="11" font-family="monospace" fill="#334155" font-weight="bold">+ postId: UUID «PK,FK»</text>
+          <text x="12" y="100" font-size="11" font-family="monospace" fill="#334155">+ createdAt: Timestamp</text>
+        </g>
+
+        <!-- USER CLASS (taller: 400px total) -->
+        <g transform="translate(340, 40)">
+          <rect x="0" y="0" width="280" height="32" rx="4" fill="#f1f5f9" stroke="#334155" stroke-width="1.5"/>
+          <rect x="0" y="32" width="280" height="368" fill="white" stroke="#334155" stroke-width="1.5"/>
+          <rect x="0" y="396" width="280" height="4" fill="#334155" rx="0 0 4 4"/>
+          
+          <text x="140" y="22" text-anchor="middle" font-weight="bold" font-size="14" fill="#1e293b">User</text>
+          
+          <text x="12" y="58" font-size="11" font-family="monospace" fill="#334155" font-weight="bold">+ id: UUID «PK»</text>
+          <text x="12" y="82" font-size="11" font-family="monospace" fill="#334155">+ username: String[20]</text>
+          <text x="12" y="106" font-size="11" font-family="monospace" fill="#334155">+ displayName: String[50]</text>
+          <text x="12" y="130" font-size="11" font-family="monospace" fill="#334155">+ bio: String[160]</text>
+          <text x="12" y="154" font-size="11" font-family="monospace" fill="#334155">+ avatarUrl: String</text>
+          <text x="12" y="178" font-size="11" font-family="monospace" fill="#334155">+ trustScore: Decimal(5,2)</text>
+          <text x="12" y="202" font-size="11" font-family="monospace" fill="#334155">+ postsFactChecked: Integer</text>
+          <text x="12" y="226" font-size="11" font-family="monospace" fill="#334155">+ postsVerified: Integer</text>
+          <text x="12" y="250" font-size="11" font-family="monospace" fill="#334155">+ postsFalse: Integer</text>
+          <text x="12" y="274" font-size="11" font-family="monospace" fill="#334155">+ debatesWon: Integer</text>
+          <text x="12" y="298" font-size="11" font-family="monospace" fill="#334155">+ debatesLost: Integer</text>
+          <text x="12" y="322" font-size="11" font-family="monospace" fill="#334155">+ createdAt: Timestamp</text>
+          
+          <line x1="0" y1="346" x2="280" y2="346" stroke="#334155"/>
+          <text x="12" y="374" font-size="11" font-family="monospace" fill="#6b7280">+ calculateTrustScore(): Decimal</text>
+        </g>
+
+        <!-- FOLLOW CLASS -->
+        <g transform="translate(720, 40)">
+          <rect x="0" y="0" width="220" height="32" rx="4" fill="#f1f5f9" stroke="#334155" stroke-width="1.5"/>
+          <rect x="0" y="32" width="220" height="88" fill="white" stroke="#334155" stroke-width="1.5"/>
+          <rect x="0" y="116" width="220" height="4" fill="#334155" rx="0 0 4 4"/>
+          
+          <text x="110" y="22" text-anchor="middle" font-weight="bold" font-size="14" fill="#1e293b">Follow</text>
+          
+          <text x="12" y="56" font-size="11" font-family="monospace" fill="#334155" font-weight="bold">+ followerId: UUID «PK,FK»</text>
+          <text x="12" y="78" font-size="11" font-family="monospace" fill="#334155" font-weight="bold">+ followingId: UUID «PK,FK»</text>
+          <text x="12" y="100" font-size="11" font-family="monospace" fill="#334155">+ createdAt: Timestamp</text>
+        </g>
+
+        <!-- ========== ROW 2: Post, Debate, DebateVote ========== -->
+
+        <!-- POST CLASS (taller: 430px total) -->
+        <g transform="translate(50, 520)">
+          <rect x="0" y="0" width="250" height="32" rx="4" fill="#f1f5f9" stroke="#334155" stroke-width="1.5"/>
+          <rect x="0" y="32" width="250" height="398" fill="white" stroke="#334155" stroke-width="1.5"/>
+          <rect x="0" y="426" width="250" height="4" fill="#334155" rx="0 0 4 4"/>
+          
+          <text x="125" y="22" text-anchor="middle" font-weight="bold" font-size="14" fill="#1e293b">Post</text>
+          
+          <text x="12" y="58" font-size="11" font-family="monospace" fill="#334155" font-weight="bold">+ id: UUID «PK»</text>
+          <text x="12" y="82" font-size="11" font-family="monospace" fill="#334155" font-style="italic">+ authorId: UUID «FK»</text>
+          <text x="12" y="106" font-size="11" font-family="monospace" fill="#334155">+ content: String[280]</text>
+          <text x="12" y="130" font-size="11" font-family="monospace" fill="#334155" font-style="italic">+ replyToId: UUID «FK»</text>
+          <text x="12" y="154" font-size="11" font-family="monospace" fill="#334155" font-style="italic">+ repostOfId: UUID «FK»</text>
+          <text x="12" y="178" font-size="11" font-family="monospace" fill="#b45309">+ style: PostStyle «JSON»</text>
+          <text x="12" y="202" font-size="11" font-family="monospace" fill="#334155">+ factCheckStatus: FactStatus</text>
+          <text x="12" y="226" font-size="11" font-family="monospace" fill="#334155">+ factCheckScore: Decimal</text>
+          <text x="12" y="250" font-size="11" font-family="monospace" fill="#b45309">+ factCheckData: JSON</text>
+          <text x="12" y="274" font-size="11" font-family="monospace" fill="#334155">+ wasCheckedBefore: Boolean</text>
+          <text x="12" y="298" font-size="11" font-family="monospace" fill="#334155">+ likeCount: Integer</text>
+          <text x="12" y="322" font-size="11" font-family="monospace" fill="#334155">+ replyCount: Integer</text>
+          <text x="12" y="346" font-size="11" font-family="monospace" fill="#334155">+ repostCount: Integer</text>
+          <text x="12" y="370" font-size="11" font-family="monospace" fill="#334155">+ createdAt: Timestamp</text>
+          
+          <line x1="0" y1="384" x2="250" y2="384" stroke="#334155"/>
+          <text x="12" y="408" font-size="11" font-family="monospace" fill="#6b7280">+ factCheck(): FactCheckResult</text>
+        </g>
+
+        <!-- DEBATE CLASS (taller: 440px total) -->
+        <g transform="translate(420, 520)">
+          <rect x="0" y="0" width="280" height="32" rx="4" fill="#f1f5f9" stroke="#334155" stroke-width="1.5"/>
+          <rect x="0" y="32" width="280" height="408" fill="white" stroke="#334155" stroke-width="1.5"/>
+          <rect x="0" y="436" width="280" height="4" fill="#334155" rx="0 0 4 4"/>
+          
+          <text x="140" y="22" text-anchor="middle" font-weight="bold" font-size="14" fill="#1e293b">Debate</text>
+          
+          <text x="12" y="58" font-size="11" font-family="monospace" fill="#334155" font-weight="bold">+ id: UUID «PK»</text>
+          <text x="12" y="82" font-size="11" font-family="monospace" fill="#334155">+ topic: String[280]</text>
+          <text x="12" y="106" font-size="11" font-family="monospace" fill="#334155" font-style="italic">+ challengerId: UUID «FK»</text>
+          <text x="12" y="130" font-size="11" font-family="monospace" fill="#334155" font-style="italic">+ defenderId: UUID «FK»</text>
+          <text x="12" y="154" font-size="11" font-family="monospace" fill="#334155">+ status: DebateStatus</text>
+          <text x="12" y="178" font-size="11" font-family="monospace" fill="#334155">+ currentRound: Integer</text>
+          <text x="12" y="202" font-size="11" font-family="monospace" fill="#334155" font-style="italic">+ whoseTurn: UUID «FK»</text>
+          <text x="12" y="226" font-size="11" font-family="monospace" fill="#334155" font-style="italic">+ winnerId: UUID «FK»</text>
+          <text x="12" y="250" font-size="11" font-family="monospace" fill="#334155">+ votesChallenger: Integer</text>
+          <text x="12" y="274" font-size="11" font-family="monospace" fill="#334155">+ votesDefender: Integer</text>
+          <text x="12" y="298" font-size="11" font-family="monospace" fill="#334155">+ votesTie: Integer</text>
+          <text x="12" y="322" font-size="11" font-family="monospace" fill="#334155">+ votingEndsAt: Timestamp</text>
+          <text x="12" y="346" font-size="11" font-family="monospace" fill="#334155">+ createdAt: Timestamp</text>
+          
+          <line x1="0" y1="370" x2="280" y2="370" stroke="#334155"/>
+          <text x="12" y="398" font-size="11" font-family="monospace" fill="#6b7280">+ declareWinner(): User</text>
+        </g>
+
+        <!-- DEBATE VOTE CLASS -->
+        <g transform="translate(820, 620)">
+          <rect x="0" y="0" width="220" height="32" rx="4" fill="#f1f5f9" stroke="#334155" stroke-width="1.5"/>
+          <rect x="0" y="32" width="220" height="108" fill="white" stroke="#334155" stroke-width="1.5"/>
+          <rect x="0" y="136" width="220" height="4" fill="#334155" rx="0 0 4 4"/>
+          
+          <text x="110" y="22" text-anchor="middle" font-weight="bold" font-size="14" fill="#1e293b">DebateVote</text>
+          
+          <text x="12" y="56" font-size="11" font-family="monospace" fill="#334155" font-weight="bold">+ debateId: UUID «PK,FK»</text>
+          <text x="12" y="78" font-size="11" font-family="monospace" fill="#334155" font-weight="bold">+ userId: UUID «PK,FK»</text>
+          <text x="12" y="100" font-size="11" font-family="monospace" fill="#334155">+ vote: VoteChoice</text>
+          <text x="12" y="122" font-size="11" font-family="monospace" fill="#334155">+ createdAt: Timestamp</text>
+        </g>
+
+        <!-- ========== ROW 3: FactCheck, DebateArgument ========== -->
+
+        <!-- FACT CHECK CLASS -->
+        <g transform="translate(50, 1040)">
+          <rect x="0" y="0" width="210" height="32" rx="4" fill="#f1f5f9" stroke="#334155" stroke-width="1.5"/>
+          <rect x="0" y="32" width="210" height="198" fill="white" stroke="#334155" stroke-width="1.5"/>
+          <rect x="0" y="226" width="210" height="4" fill="#334155" rx="0 0 4 4"/>
+          
+          <text x="105" y="22" text-anchor="middle" font-weight="bold" font-size="14" fill="#1e293b">FactCheck</text>
+          
+          <text x="12" y="56" font-size="11" font-family="monospace" fill="#334155" font-weight="bold">+ id: UUID «PK»</text>
+          <text x="12" y="78" font-size="11" font-family="monospace" fill="#334155" font-style="italic">+ postId: UUID «FK»</text>
+          <text x="12" y="100" font-size="11" font-family="monospace" fill="#334155" font-style="italic">+ debateArgId: UUID «FK»</text>
+          <text x="12" y="122" font-size="11" font-family="monospace" fill="#334155" font-style="italic">+ requestedBy: UUID «FK»</text>
+          <text x="12" y="144" font-size="11" font-family="monospace" fill="#334155">+ status: CheckStatus</text>
+          <text x="12" y="166" font-size="11" font-family="monospace" fill="#334155">+ overallScore: Decimal</text>
+          <text x="12" y="188" font-size="11" font-family="monospace" fill="#b45309">+ claims: JSON</text>
+          <text x="12" y="210" font-size="11" font-family="monospace" fill="#334155">+ createdAt: Timestamp</text>
+        </g>
+
+        <!-- DEBATE ARGUMENT CLASS -->
+        <g transform="translate(350, 1040)">
+          <rect x="0" y="0" width="240" height="32" rx="4" fill="#f1f5f9" stroke="#334155" stroke-width="1.5"/>
+          <rect x="0" y="32" width="240" height="218" fill="white" stroke="#334155" stroke-width="1.5"/>
+          <rect x="0" y="246" width="240" height="4" fill="#334155" rx="0 0 4 4"/>
+          
+          <text x="120" y="22" text-anchor="middle" font-weight="bold" font-size="14" fill="#1e293b">DebateArgument</text>
+          
+          <text x="12" y="56" font-size="11" font-family="monospace" fill="#334155" font-weight="bold">+ id: UUID «PK»</text>
+          <text x="12" y="78" font-size="11" font-family="monospace" fill="#334155" font-style="italic">+ debateId: UUID «FK»</text>
+          <text x="12" y="100" font-size="11" font-family="monospace" fill="#334155" font-style="italic">+ userId: UUID «FK»</text>
+          <text x="12" y="122" font-size="11" font-family="monospace" fill="#334155">+ roundNumber: Integer</text>
+          <text x="12" y="144" font-size="11" font-family="monospace" fill="#334155">+ content: String[500]</text>
+          <text x="12" y="166" font-size="11" font-family="monospace" fill="#334155">+ factCheckStatus: FactStatus</text>
+          <text x="12" y="188" font-size="11" font-family="monospace" fill="#334155">+ factCheckScore: Decimal</text>
+          <text x="12" y="210" font-size="11" font-family="monospace" fill="#b45309">+ factCheckData: JSON</text>
+          <text x="12" y="232" font-size="11" font-family="monospace" fill="#334155">+ createdAt: Timestamp</text>
+        </g>
+
+        <!-- ========== ENUMERATIONS (Right Column) ========== -->
+        
+        <!-- FactStatus Enum -->
+        <g transform="translate(1150, 40)">
+          <rect x="0" y="0" width="180" height="32" rx="4" fill="#f1f5f9" stroke="#334155" stroke-width="1.5"/>
+          <rect x="0" y="32" width="180" height="118" fill="white" stroke="#334155" stroke-width="1.5"/>
+          <rect x="0" y="146" width="180" height="4" fill="#334155" rx="0 0 4 4"/>
+          
+          <text x="90" y="14" text-anchor="middle" font-size="10" fill="#64748b" font-style="italic">«enumeration»</text>
+          <text x="90" y="28" text-anchor="middle" font-weight="bold" font-size="13" fill="#1e293b">FactStatus</text>
+          
+          <text x="12" y="56" font-size="11" font-family="monospace" fill="#334155">VERIFIED</text>
+          <text x="12" y="78" font-size="11" font-family="monospace" fill="#334155">LIKELY_TRUE</text>
+          <text x="12" y="100" font-size="11" font-family="monospace" fill="#334155">DISPUTED</text>
+          <text x="12" y="122" font-size="11" font-family="monospace" fill="#334155">FALSE</text>
+          <text x="12" y="144" font-size="11" font-family="monospace" fill="#334155">UNCHECKED</text>
+        </g>
+
+        <!-- DebateStatus Enum -->
+        <g transform="translate(1150, 230)">
+          <rect x="0" y="0" width="180" height="32" rx="4" fill="#f1f5f9" stroke="#334155" stroke-width="1.5"/>
+          <rect x="0" y="32" width="180" height="96" fill="white" stroke="#334155" stroke-width="1.5"/>
+          <rect x="0" y="124" width="180" height="4" fill="#334155" rx="0 0 4 4"/>
+          
+          <text x="90" y="14" text-anchor="middle" font-size="10" fill="#64748b" font-style="italic">«enumeration»</text>
+          <text x="90" y="28" text-anchor="middle" font-weight="bold" font-size="13" fill="#1e293b">DebateStatus</text>
+          
+          <text x="12" y="56" font-size="11" font-family="monospace" fill="#334155">PENDING</text>
+          <text x="12" y="78" font-size="11" font-family="monospace" fill="#334155">ACTIVE</text>
+          <text x="12" y="100" font-size="11" font-family="monospace" fill="#334155">VOTING</text>
+          <text x="12" y="122" font-size="11" font-family="monospace" fill="#334155">COMPLETED</text>
+        </g>
+
+        <!-- VoteChoice Enum -->
+        <g transform="translate(1150, 400)">
+          <rect x="0" y="0" width="180" height="32" rx="4" fill="#f1f5f9" stroke="#334155" stroke-width="1.5"/>
+          <rect x="0" y="32" width="180" height="74" fill="white" stroke="#334155" stroke-width="1.5"/>
+          <rect x="0" y="102" width="180" height="4" fill="#334155" rx="0 0 4 4"/>
+          
+          <text x="90" y="14" text-anchor="middle" font-size="10" fill="#64748b" font-style="italic">«enumeration»</text>
+          <text x="90" y="28" text-anchor="middle" font-weight="bold" font-size="13" fill="#1e293b">VoteChoice</text>
+          
+          <text x="12" y="56" font-size="11" font-family="monospace" fill="#334155">CHALLENGER</text>
+          <text x="12" y="78" font-size="11" font-family="monospace" fill="#334155">DEFENDER</text>
+          <text x="12" y="100" font-size="11" font-family="monospace" fill="#334155">TIE</text>
+        </g>
+
+        <!-- PostStyle Value Object -->
+        <g transform="translate(1150, 560)">
+          <rect x="0" y="0" width="180" height="32" rx="4" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
+          <rect x="0" y="32" width="180" height="74" fill="white" stroke="#d97706" stroke-width="1.5"/>
+          <rect x="0" y="102" width="180" height="4" fill="#d97706" rx="0 0 4 4"/>
+          
+          <text x="90" y="14" text-anchor="middle" font-size="10" fill="#92400e" font-style="italic">«valueObject»</text>
+          <text x="90" y="28" text-anchor="middle" font-weight="bold" font-size="13" fill="#92400e">PostStyle</text>
+          
+          <text x="12" y="56" font-size="11" font-family="monospace" fill="#334155">+ font: FontType</text>
+          <text x="12" y="78" font-size="11" font-family="monospace" fill="#334155">+ textColor: String</text>
+          <text x="12" y="100" font-size="11" font-family="monospace" fill="#334155">+ gradient: GradientType</text>
+        </g>
+
+        <!-- ========== RELATIONSHIPS ========== -->
+
+        <!-- User -> Like (horizontal) -->
+        <line x1="340" y1="90" x2="260" y2="90" stroke="#64748b" stroke-width="1.5"/>
+        <polygon points="260,90 272,84 272,96" fill="#64748b"/>
+        <text x="320" y="82" font-size="12" font-weight="bold" fill="#1e293b">1</text>
+        <text x="278" y="82" font-size="12" font-weight="bold" fill="#1e293b">*</text>
+
+        <!-- User -> Follow (follower) -->
+        <line x1="620" y1="70" x2="720" y2="70" stroke="#64748b" stroke-width="1.5"/>
+        <polygon points="720,70 708,64 708,76" fill="#64748b"/>
+        <text x="635" y="62" font-size="12" font-weight="bold" fill="#1e293b">1</text>
+        <text x="695" y="62" font-size="12" font-weight="bold" fill="#1e293b">*</text>
+        <text x="655" y="62" font-size="11" fill="#475569" font-style="italic">follower</text>
+
+        <!-- User -> Follow (following) -->
+        <line x1="620" y1="110" x2="720" y2="110" stroke="#64748b" stroke-width="1.5"/>
+        <polygon points="720,110 708,104 708,116" fill="#64748b"/>
+        <text x="635" y="128" font-size="12" font-weight="bold" fill="#1e293b">1</text>
+        <text x="695" y="128" font-size="12" font-weight="bold" fill="#1e293b">*</text>
+        <text x="650" y="128" font-size="11" fill="#475569" font-style="italic">following</text>
+
+        <!-- User -> Post (author) - down left side -->
+        <path d="M 340 220 L 310 220 L 310 620 L 300 620" stroke="#64748b" stroke-width="1.5" fill="none"/>
+        <polygon points="300,620 312,614 312,626" fill="#64748b"/>
+        <text x="318" y="235" font-size="12" font-weight="bold" fill="#1e293b">1</text>
+        <text x="268" y="635" font-size="12" font-weight="bold" fill="#1e293b">*</text>
+        <!-- label: author (moved so it doesn't overlap the User box) -->
+        <g class="edge-label" transform="translate(310, 420)">
+          <rect x="-28" y="-13" width="56" height="20" rx="4"></rect>
+          <text x="0" y="2" text-anchor="middle" font-size="11" font-style="italic">author</text>
+        </g>
+
+        <!-- Post -> Like (up) -->
+        <path d="M 175 520 L 175 200 L 155 200 L 155 160" stroke="#64748b" stroke-width="1.5" fill="none"/>
+        <polygon points="155,160 149,172 161,172" fill="#64748b"/>
+        <text x="183" y="510" font-size="12" font-weight="bold" fill="#1e293b">1</text>
+        <text x="163" y="175" font-size="12" font-weight="bold" fill="#1e293b">*</text>
+
+        <!-- Post -> Post (self-reference: replyTo) - left side loop -->
+        <path d="M 50 720 Q -20 720 -20 800 Q -20 880 50 880" stroke="#64748b" stroke-width="1.5" fill="none" stroke-dasharray="6 3"/>
+        <polygon points="50,880 62,874 62,886" fill="#64748b"/>
+        <!-- label: replyTo (moved inside loop and away from the left edge) -->
+        <g class="edge-label" transform="translate(10, 805)">
+          <rect x="-32" y="-13" width="64" height="20" rx="4"></rect>
+          <text x="0" y="2" text-anchor="middle" font-size="11" font-style="italic">replyTo</text>
+        </g>
+        <text x="5" y="715" font-size="12" font-weight="bold" fill="#1e293b">0..1</text>
+        <text x="58" y="900" font-size="12" font-weight="bold" fill="#1e293b">*</text>
+
+        <!-- User -> Debate (challenger) - straight down -->
+        <path d="M 450 440 L 450 490 L 490 490 L 490 520" stroke="#64748b" stroke-width="1.5" fill="none"/>
+        <polygon points="490,520 484,508 496,508" fill="#64748b"/>
+        <text x="435" y="465" font-size="12" font-weight="bold" fill="#1e293b">1</text>
+        <text x="495" y="515" font-size="12" font-weight="bold" fill="#1e293b">*</text>
+        <text x="420" y="505" font-size="11" fill="#475569" font-style="italic">challenger</text>
+
+        <!-- User -> Debate (defender) -->
+        <path d="M 530 440 L 530 490 L 600 490 L 600 520" stroke="#64748b" stroke-width="1.5" fill="none"/>
+        <polygon points="600,520 594,508 606,508" fill="#64748b"/>
+        <text x="538" y="465" font-size="12" font-weight="bold" fill="#1e293b">1</text>
+        <text x="605" y="515" font-size="12" font-weight="bold" fill="#1e293b">*</text>
+        <text x="610" y="490" font-size="11" fill="#475569" font-style="italic">defender</text>
+
+        <!-- Debate -> DebateVote (simple horizontal) -->
+        <line x1="700" y1="690" x2="820" y2="690" stroke="#64748b" stroke-width="1.5"/>
+        <polygon points="820,690 808,684 808,696" fill="#64748b"/>
+        <text x="715" y="682" font-size="12" font-weight="bold" fill="#1e293b">1</text>
+        <text x="795" y="682" font-size="12" font-weight="bold" fill="#1e293b">*</text>
+        <text x="745" y="710" font-size="11" fill="#475569" font-style="italic">votes</text>
+
+        <!-- User -> DebateVote (routed right, then down along edge) -->
+        <path d="M 620 200 L 1080 200 L 1080 670 L 1040 670" stroke="#64748b" stroke-width="1.5" fill="none" stroke-dasharray="6 3"/>
+        <polygon points="1040,670 1052,664 1052,676" fill="#64748b"/>
+        <text x="635" y="192" font-size="12" font-weight="bold" fill="#1e293b">1</text>
+        <text x="1048" y="662" font-size="12" font-weight="bold" fill="#1e293b">*</text>
+
+        <!-- Debate -> DebateArgument (down) -->
+        <path d="M 520 960 L 520 1000 L 470 1000 L 470 1040" stroke="#64748b" stroke-width="1.5" fill="none"/>
+        <polygon points="470,1040 464,1028 476,1028" fill="#64748b"/>
+        <text x="528" y="980" font-size="12" font-weight="bold" fill="#1e293b">1</text>
+        <text x="478" y="1035" font-size="12" font-weight="bold" fill="#1e293b">*</text>
+        <text x="485" y="1020" font-size="11" fill="#475569" font-style="italic">arguments</text>
+
+        <!-- Post -> FactCheck (down) -->
+        <line x1="155" y1="950" x2="155" y2="1040" stroke="#64748b" stroke-width="1.5"/>
+        <polygon points="155,1040 149,1028 161,1028" fill="#64748b"/>
+        <text x="163" y="980" font-size="12" font-weight="bold" fill="#1e293b">1</text>
+        <text x="163" y="1035" font-size="12" font-weight="bold" fill="#1e293b">*</text>
+
+        <!-- DebateArgument -> FactCheck (horizontal) -->
+        <line x1="350" y1="1140" x2="260" y2="1140" stroke="#64748b" stroke-width="1.5"/>
+        <polygon points="260,1140 272,1134 272,1146" fill="#64748b"/>
+        <text x="335" y="1132" font-size="12" font-weight="bold" fill="#1e293b">1</text>
+        <text x="278" y="1132" font-size="12" font-weight="bold" fill="#1e293b">*</text>
+
+        <!-- User -> DebateArgument (down left edge) -->
+        <path d="M 340 300 L 320 300 L 320 1000 L 380 1000 L 380 1040" stroke="#64748b" stroke-width="1.5" fill="none" stroke-dasharray="6 3"/>
+        <polygon points="380,1040 374,1028 386,1028" fill="#64748b"/>
+        <text x="328" y="292" font-size="12" font-weight="bold" fill="#1e293b">1</text>
+        <text x="388" y="1035" font-size="12" font-weight="bold" fill="#1e293b">*</text>
+
+        <!-- ========== NOTES ========== -->
+        
+        <g transform="translate(700, 1100)">
+          <polygon points="0,0 260,0 270,10 270,90 0,90" fill="#fef9c3" stroke="#ca8a04"/>
+          <polygon points="260,0 260,10 270,10" fill="#fef9c3" stroke="#ca8a04"/>
+          <text x="14" y="24" font-size="11" font-weight="bold" fill="#713f12">Note:</text>
+          <text x="14" y="46" font-size="10" fill="#713f12">User has multiple FK relationships</text>
+          <text x="14" y="64" font-size="10" fill="#713f12">to Debate: challenger, defender,</text>
+          <text x="14" y="82" font-size="10" fill="#713f12">whoseTurn, and winner</text>
+        </g>
+
+        <g transform="translate(1020, 1100)">
+          <polygon points="0,0 240,0 250,10 250,90 0,90" fill="#fef3c7" stroke="#d97706"/>
+          <polygon points="240,0 240,10 250,10" fill="#fef3c7" stroke="#d97706"/>
+          <text x="14" y="24" font-size="11" font-weight="bold" fill="#92400e">JSONB Columns:</text>
+          <text x="14" y="46" font-size="10" fill="#713f12">• Post.style</text>
+          <text x="14" y="64" font-size="10" fill="#713f12">• Post.factCheckData</text>
+          <text x="14" y="82" font-size="10" fill="#713f12">• FactCheck.claims</text>
+        </g>
+
+      </svg>
+    </div>
+
+    <!-- Legend -->
+    <div class="legend-box">
+      <div class="legend-title">UML Notation Legend</div>
+      <div class="legend-grid">
+        <div class="legend-item">
+          <svg class="legend-symbol" viewBox="0 0 60 24">
+            <line x1="5" y1="12" x2="45" y2="12" stroke="#64748b" stroke-width="1.5"/>
+            <polygon points="45,12 35,8 35,16" fill="#64748b"/>
+          </svg>
+          <span>Association (navigable)</span>
+        </div>
+        <div class="legend-item">
+          <svg class="legend-symbol" viewBox="0 0 60 24">
+            <line x1="5" y1="12" x2="45" y2="12" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5 3"/>
+            <polygon points="45,12 35,8 35,16" fill="#64748b"/>
+          </svg>
+          <span>Dependency (dashed)</span>
+        </div>
+        <div class="legend-item">
+          <svg class="legend-symbol" viewBox="0 0 60 24">
+            <text x="8" y="16" font-size="12" font-weight="bold" fill="#1e293b">1</text>
+            <text x="40" y="16" font-size="12" font-weight="bold" fill="#1e293b">*</text>
+          </svg>
+          <span>Multiplicity (one-to-many)</span>
+        </div>
+        <div class="legend-item">
+          <svg class="legend-symbol" viewBox="0 0 60 24">
+            <text x="5" y="16" font-size="10" fill="#64748b" font-style="italic">«enumeration»</text>
+          </svg>
+          <span>Stereotype</span>
+        </div>
+        <div class="legend-item">
+          <svg class="legend-symbol" viewBox="0 0 60 24">
+            <rect x="5" y="4" width="50" height="16" fill="#fef3c7" stroke="#d97706" rx="2"/>
+          </svg>
+          <span>Value Object / JSON</span>
+        </div>
+        <div class="legend-item">
+          <svg class="legend-symbol" viewBox="0 0 60 24">
+            <text x="5" y="16" font-size="10" font-weight="bold" fill="#334155">«PK»</text>
+            <text x="32" y="16" font-size="10" fill="#334155" font-style="italic">«FK»</text>
+          </svg>
+          <span>Primary / Foreign Key</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+  (() => {
+    const svg = document.getElementById('umlSvg');
+    if (!svg) return;
+
+    // Store the initial viewBox so Reset always returns to a known state.
+    const vb0 = svg.viewBox.baseVal;
+    const initial = { x: vb0.x, y: vb0.y, w: vb0.width, h: vb0.height };
+
+    const setViewBox = (x, y, w, h) => {
+      svg.setAttribute('viewBox', `${x} ${y} ${w} ${h}`);
+    };
+
+    const zoomAt = (factor, clientX, clientY) => {
+      const vb = svg.viewBox.baseVal;
+      const ctm = svg.getScreenCTM();
+      if (!ctm) return;
+
+      const pt = svg.createSVGPoint();
+      pt.x = clientX;
+      pt.y = clientY;
+      const svgP = pt.matrixTransform(ctm.inverse());
+
+      const newW = vb.width / factor;
+      const newH = vb.height / factor;
+
+      const dx = (svgP.x - vb.x) / vb.width;
+      const dy = (svgP.y - vb.y) / vb.height;
+
+      const newX = svgP.x - dx * newW;
+      const newY = svgP.y - dy * newH;
+
+      setViewBox(newX, newY, newW, newH);
+    };
+
+    const zoomCenter = (factor) => {
+      const vb = svg.viewBox.baseVal;
+      const cx = vb.x + vb.width / 2;
+      const cy = vb.y + vb.height / 2;
+
+      const newW = vb.width / factor;
+      const newH = vb.height / factor;
+
+      setViewBox(cx - newW / 2, cy - newH / 2, newW, newH);
+    };
+
+    const reset = () => setViewBox(initial.x, initial.y, initial.w, initial.h);
+
+    // Zoom with wheel when Ctrl/Cmd is held (prevents hijacking normal scroll).
+    svg.addEventListener('wheel', (e) => {
+      const allowZoom = e.ctrlKey || e.metaKey;
+      if (!allowZoom) return;
+
+      e.preventDefault();
+      const factor = (e.deltaY < 0) ? 1.15 : (1 / 1.15);
+      zoomAt(factor, e.clientX, e.clientY);
+    }, { passive: false });
+
+    // Drag to pan
+    let panning = false;
+    let startX = 0, startY = 0;
+    let startVB = { x: initial.x, y: initial.y, w: initial.w, h: initial.h };
+
+    const beginPan = (e) => {
+      panning = true;
+      svg.style.cursor = 'grabbing';
+      try { svg.setPointerCapture(e.pointerId); } catch (_) {}
+
+      startX = e.clientX;
+      startY = e.clientY;
+      const vb = svg.viewBox.baseVal;
+      startVB = { x: vb.x, y: vb.y, w: vb.width, h: vb.height };
+    };
+
+    const movePan = (e) => {
+      if (!panning) return;
+
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+
+      // Convert screen pixels to SVG units using the current viewBox and rendered size.
+      const scaleX = startVB.w / svg.clientWidth;
+      const scaleY = startVB.h / svg.clientHeight;
+
+      setViewBox(startVB.x - dx * scaleX, startVB.y - dy * scaleY, startVB.w, startVB.h);
+    };
+
+    const endPan = (e) => {
+      if (!panning) return;
+      panning = false;
+      svg.style.cursor = 'grab';
+      try { svg.releasePointerCapture(e.pointerId); } catch (_) {}
+    };
+
+    svg.addEventListener('pointerdown', beginPan);
+    svg.addEventListener('pointermove', movePan);
+    svg.addEventListener('pointerup', endPan);
+    svg.addEventListener('pointercancel', endPan);
+
+    // Toolbar controls
+    document.getElementById('zoomInBtn')?.addEventListener('click', () => zoomCenter(1.25));
+    document.getElementById('zoomOutBtn')?.addEventListener('click', () => zoomCenter(1 / 1.25));
+    document.getElementById('resetZoomBtn')?.addEventListener('click', reset);
+
+    const body = document.body;
+
+    const toggle = (btn, className) => {
+      const isOn = body.classList.toggle(className);
+      if (btn) btn.setAttribute('aria-pressed', String(isOn));
+    };
+
+    const largeTextBtn = document.getElementById('largeTextBtn');
+    const highContrastBtn = document.getElementById('highContrastBtn');
+
+    largeTextBtn?.addEventListener('click', () => toggle(largeTextBtn, 'large-text'));
+    highContrastBtn?.addEventListener('click', () => toggle(highContrastBtn, 'high-contrast'));
+  })();
+  </script>
+
+</body>
+</html>
