@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Veritas Data Model</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1 {
+      text-align: center;
+      color: #2563eb;
+      font-size: 2.5rem;
+      margin-bottom: 0.25rem;
+      font-weight: 700;
+    }
+    .subtitle {
+      text-align: center;
+      color: #64748b;
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+    }
+    .diagram-container {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      padding: 20px;
+      overflow-x: auto;
+    }
+    .entity {
+      fill: white;
+      stroke: #374151;
+      stroke-width: 1.5;
+    }
+    .entity-header {
+      fill: #3b82f6;
+    }
+    .entity-name {
+      fill: white;
+      font-weight: bold;
+      font-size: 13px;
+    }
+    .field {
+      font-size: 11px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      fill: #374151;
+    }
+    .field-pk {
+      font-style: italic;
+      text-decoration: underline;
+    }
+    .field-fk {
+      font-style: italic;
+    }
+    .relationship {
+      stroke: #6b7280;
+      stroke-width: 1.5;
+      fill: none;
+    }
+    .relationship-label {
+      font-size: 9px;
+      fill: #6b7280;
+    }
+    .annotation {
+      font-size: 9px;
+    }
+    .legend {
+      margin-top: 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+    }
+    .legend-item {
+      background: #f8fafc;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+    }
+    .legend-item strong {
+      color: #374151;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .legend-item span {
+      color: #64748b;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Veritas Data Model</h1>
+    <p class="subtitle">V4.0 — AI-Powered Social Platform with Fact-Checking</p>
+    
+    <div class="diagram-container">
+      <svg viewBox="0 0 1150 750" width="100%" height="auto">
+        <!-- Background Pattern -->
+        <defs>
+          <pattern id="grid" width="25" height="25" patternUnits="userSpaceOnUse">
+            <path d="M 25 0 L 0 0 0 25" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#grid)"/>
+
+        <!-- ========== USERS (Central) ========== -->
+        <g transform="translate(480, 20)">
+          <rect class="entity" width="180" height="300" rx="6"/>
+          <rect class="entity-header" width="180" height="30" rx="6"/>
+          <rect class="entity-header" x="0" y="24" width="180" height="6"/>
+          <text class="entity-name" x="90" y="20" text-anchor="middle">users</text>
+          
+          <text class="field field-pk" x="12" y="50">id (PK)</text>
+          <text class="field" x="12" y="70">username</text>
+          <text class="field" x="12" y="90">display_name</text>
+          <text class="field" x="12" y="110">bio</text>
+          <text class="field" x="12" y="130">avatar_url</text>
+          <text class="field" x="12" y="150">trust_score</text>
+          <text class="field" x="12" y="170">posts_fact_checked</text>
+          <text class="field" x="12" y="190">posts_verified</text>
+          <text class="field" x="12" y="210">posts_false</text>
+          <text class="field" x="12" y="230">debates_won</text>
+          <text class="field" x="12" y="250">debates_lost</text>
+          <text class="field" x="12" y="270">created_at</text>
+        </g>
+
+        <!-- ========== POSTS ========== -->
+        <g transform="translate(40, 80)">
+          <rect class="entity" width="180" height="320" rx="6"/>
+          <rect class="entity-header" width="180" height="30" rx="6"/>
+          <rect class="entity-header" x="0" y="24" width="180" height="6"/>
+          <text class="entity-name" x="90" y="20" text-anchor="middle">posts</text>
+          
+          <text class="field field-pk" x="12" y="50">id (PK)</text>
+          <text class="field field-fk" x="12" y="70">author_id (FK)</text>
+          <text class="field" x="12" y="90">content</text>
+          <text class="field field-fk" x="12" y="110">reply_to_id (FK)</text>
+          <text class="field field-fk" x="12" y="130">repost_of_id (FK)</text>
+          <text class="field" x="12" y="150" fill="#d97706">style (JSONB)</text>
+          <text class="field" x="12" y="170">fact_check_status</text>
+          <text class="field" x="12" y="190">fact_check_score</text>
+          <text class="field" x="12" y="210" fill="#d97706">fact_check_data</text>
+          <text class="field" x="12" y="230">was_checked_before</text>
+          <text class="field" x="12" y="250">like_count</text>
+          <text class="field" x="12" y="270">reply_count</text>
+          <text class="field" x="12" y="290">repost_count</text>
+          <text class="field" x="12" y="310">created_at</text>
+        </g>
+
+        <!-- ========== FOLLOWS ========== -->
+        <g transform="translate(720, 20)">
+          <rect class="entity" width="160" height="100" rx="6"/>
+          <rect class="entity-header" width="160" height="30" rx="6"/>
+          <rect class="entity-header" x="0" y="24" width="160" height="6"/>
+          <text class="entity-name" x="80" y="20" text-anchor="middle">follows</text>
+          
+          <text class="field field-pk" x="12" y="50">follower_id (PK,FK)</text>
+          <text class="field field-pk" x="12" y="70">following_id (PK,FK)</text>
+          <text class="field" x="12" y="90">created_at</text>
+        </g>
+
+        <!-- ========== LIKES ========== -->
+        <g transform="translate(280, 20)">
+          <rect class="entity" width="150" height="100" rx="6"/>
+          <rect class="entity-header" width="150" height="30" rx="6"/>
+          <rect class="entity-header" x="0" y="24" width="150" height="6"/>
+          <text class="entity-name" x="75" y="20" text-anchor="middle">likes</text>
+          
+          <text class="field field-pk" x="12" y="50">user_id (PK,FK)</text>
+          <text class="field field-pk" x="12" y="70">post_id (PK,FK)</text>
+          <text class="field" x="12" y="90">created_at</text>
+        </g>
+
+        <!-- ========== DEBATES ========== -->
+        <g transform="translate(480, 380)">
+          <rect class="entity" width="190" height="320" rx="6"/>
+          <rect class="entity-header" width="190" height="30" rx="6"/>
+          <rect class="entity-header" x="0" y="24" width="190" height="6"/>
+          <text class="entity-name" x="95" y="20" text-anchor="middle">debates</text>
+          
+          <text class="field field-pk" x="12" y="50">id (PK)</text>
+          <text class="field" x="12" y="70">topic</text>
+          <text class="field field-fk" x="12" y="90">challenger_id (FK)</text>
+          <text class="field field-fk" x="12" y="110">defender_id (FK)</text>
+          <text class="field" x="12" y="130">status</text>
+          <text class="field" x="12" y="150">current_round</text>
+          <text class="field field-fk" x="12" y="170">whose_turn (FK)</text>
+          <text class="field field-fk" x="12" y="190">winner_id (FK)</text>
+          <text class="field" x="12" y="210">votes_challenger</text>
+          <text class="field" x="12" y="230">votes_defender</text>
+          <text class="field" x="12" y="250">votes_tie</text>
+          <text class="field" x="12" y="270">voting_ends_at</text>
+          <text class="field" x="12" y="290">created_at</text>
+        </g>
+
+        <!-- ========== DEBATE_ARGUMENTS ========== -->
+        <g transform="translate(250, 480)">
+          <rect class="entity" width="170" height="220" rx="6"/>
+          <rect class="entity-header" width="170" height="30" rx="6"/>
+          <rect class="entity-header" x="0" y="24" width="170" height="6"/>
+          <text class="entity-name" x="85" y="20" text-anchor="middle">debate_arguments</text>
+          
+          <text class="field field-pk" x="12" y="50">id (PK)</text>
+          <text class="field field-fk" x="12" y="70">debate_id (FK)</text>
+          <text class="field field-fk" x="12" y="90">user_id (FK)</text>
+          <text class="field" x="12" y="110">round_number</text>
+          <text class="field" x="12" y="130">content</text>
+          <text class="field" x="12" y="150">fact_check_status</text>
+          <text class="field" x="12" y="170">fact_check_score</text>
+          <text class="field" x="12" y="190" fill="#d97706">fact_check_data</text>
+          <text class="field" x="12" y="210">created_at</text>
+        </g>
+
+        <!-- ========== DEBATE_VOTES ========== -->
+        <g transform="translate(730, 480)">
+          <rect class="entity" width="160" height="120" rx="6"/>
+          <rect class="entity-header" width="160" height="30" rx="6"/>
+          <rect class="entity-header" x="0" y="24" width="160" height="6"/>
+          <text class="entity-name" x="80" y="20" text-anchor="middle">debate_votes</text>
+          
+          <text class="field field-pk" x="12" y="50">debate_id (PK,FK)</text>
+          <text class="field field-pk" x="12" y="70">user_id (PK,FK)</text>
+          <text class="field" x="12" y="90">vote</text>
+          <text class="field" x="12" y="110">created_at</text>
+        </g>
+
+        <!-- ========== FACT_CHECKS ========== -->
+        <g transform="translate(40, 460)">
+          <rect class="entity" width="170" height="200" rx="6"/>
+          <rect class="entity-header" width="170" height="30" rx="6"/>
+          <rect class="entity-header" x="0" y="24" width="170" height="6"/>
+          <text class="entity-name" x="85" y="20" text-anchor="middle">fact_checks</text>
+          
+          <text class="field field-pk" x="12" y="50">id (PK)</text>
+          <text class="field field-fk" x="12" y="70">post_id (FK)</text>
+          <text class="field field-fk" x="12" y="90">debate_arg_id (FK)</text>
+          <text class="field field-fk" x="12" y="110">requested_by (FK)</text>
+          <text class="field" x="12" y="130">status</text>
+          <text class="field" x="12" y="150">overall_score</text>
+          <text class="field" x="12" y="170" fill="#d97706">claims (JSONB)</text>
+          <text class="field" x="12" y="190">created_at</text>
+        </g>
+
+        <!-- ========== RELATIONSHIPS ========== -->
+        
+        <!-- users -> posts -->
+        <path class="relationship" d="M 480 170 L 220 170"/>
+        <line x1="224" y1="170" x2="232" y2="162" stroke="#6b7280" stroke-width="1.5"/>
+        <line x1="224" y1="170" x2="232" y2="170" stroke="#6b7280" stroke-width="1.5"/>
+        <line x1="224" y1="170" x2="232" y2="178" stroke="#6b7280" stroke-width="1.5"/>
+        <line x1="476" y1="164" x2="476" y2="176" stroke="#6b7280" stroke-width="1.5"/>
+        <text class="relationship-label" x="340" y="162">author</text>
+
+        <!-- users -> likes -->
+        <path class="relationship" d="M 480 70 L 430 70"/>
+        <line x1="434" y1="70" x2="442" y2="62" stroke="#6b7280" stroke-width="1.5"/>
+        <line x1="434" y1="70" x2="442" y2="70" stroke="#6b7280" stroke-width="1.5"/>
+        <line x1="434" y1="70" x2="442" y2="78" stroke="#6b7280" stroke-width="1.5"/>
+        <line x1="476" y1="64" x2="476" y2="76" stroke="#6b7280" stroke-width="1.5"/>
+
+        <!-- posts -> likes -->
+        <path class="relationship" d="M 130 80 L 130 50 L 355 50 L 355 80"/>
+        <line x1="130" y1="84" x2="122" y2="76" stroke="#6b7280" stroke-width="1.5"/>
+        <line x1="130" y1="84" x2="130" y2="76" stroke="#6b7280" stroke-width="1.5"/>
+        <line x1="130" y1="84" x2="138" y2="76" stroke="#6b7280" stroke-width="1.5"/>
+
+        <!-- users -> follows (follower) -->
+        <path class="relationship" d="M 660 60 L 720 60"/>
+        <line x1="716" y1="60" x2="724" y2="52" stroke="#6b7280" stroke-width="1.5"/>
+        <line x1="716" y1="60" x2="724" y2="60" stroke="#6b7280" stroke-width="1.5"/>
+        <line x1="716" y1="60" x2="724" y2="68" stroke="#6b7280" stroke-width="1.5"/>
+        <line x1="664" y1="54" x2="664" y2="66" stroke="#6b7280" stroke-width="1.5"/>
+        <text class="relationship-label" x="672" y="52">follower</text>
+
+        <!-- users -> follows (following) -->
+        <path class="relationship" d="M 660 90 L 720 90"/>
+        <line x1="716" y1="90" x2="724" y2="82" stroke="#6b7280" stroke-width="1.5"/>
+        <line x1="716" y1="90" x2="724" y2="90" stroke="#6b7280" stroke-width="1.5"/>
+        <line x1="716" y1="90" x2="724" y2="98" stroke="#6b7280" stroke-width="1.5"/>
+        <line x1="664" y1="84" x2="664" y2="96" stroke="#6b7280" stroke-width="1.5"/>
+        <text class="relationship-label" x="668" y="82">following</text>
+
+        <!-- posts -> posts (self-ref: reply) -->
+        <path class="relationship" d="M 40 200 Q 10 200 10 250 Q 10 300 40 300" stroke-dasharray="4 2"/>
+        <text class="relationship-label" x="5" y="250" transform="rotate(-90, 5, 250)">reply_to</text>
+
+        <!-- users -> debates (multiple) -->
+        <path class="relationship" d="M 570 320 L 570 380"/>
+        <line x1="570" y1="376" x2="562" y2="384" stroke="#6b7280" stroke-width="1.5"/>
+        <line x1="570" y1="376" x2="570" y2="384" stroke="#6b7280" stroke-width="1.5"/>
+        <line x1="570" y1="376" x2="578" y2="384" stroke="#6b7280" stroke-width="1.5"/>
+        <line x1="564" y1="324" x2="576" y2="324" stroke="#6b7280" stroke-width="1.5"/>
+        <text class="relationship-label" x="575" y="350">challenger/defender/winner</text>
+
+        <!-- debates -> debate_arguments -->
+        <path class="relationship" d="M 480 520 L 420 520"/>
+        <line x1="424" y1="520" x2="432" y2="512" stroke="#6b7280" stroke-width="1.5"/>
+        <line x1="424" y1="520" x2="432" y2="520" stroke="#6b7280" stroke-width="1.5"/>
+        <line x1="424" y1="520" x2="432" y2="528" stroke="#6b7280" stroke-width="1.5"/>
+        <line x1="476" y1="514" x2="476" y2="526" stroke="#6b7280" stroke-width="1.5"/>
+
+        <!-- debates -> debate_votes -->
+        <path class="relationship" d="M 670 520 L 730 520"/>
+        <line x1="726" y1="520" x2="734" y2="512" stroke="#6b7280" stroke-width="1.5"/>
+        <line x1="726" y1="520" x2="734" y2="520" stroke="#6b7280" stroke-width="1.5"/>
+        <line x1="726" y1="520" x2="734" y2="528" stroke="#6b7280" stroke-width="1.5"/>
+        <line x1="674" y1="514" x2="674" y2="526" stroke="#6b7280" stroke-width="1.5"/>
+
+        <!-- posts -> fact_checks -->
+        <path class="relationship" d="M 130 400 L 130 460"/>
+        <line x1="130" y1="456" x2="122" y2="464" stroke="#6b7280" stroke-width="1.5"/>
+        <line x1="130" y1="456" x2="130" y2="464" stroke="#6b7280" stroke-width="1.5"/>
+        <line x1="130" y1="456" x2="138" y2="464" stroke="#6b7280" stroke-width="1.5"/>
+        <line x1="124" y1="404" x2="136" y2="404" stroke="#6b7280" stroke-width="1.5"/>
+
+        <!-- debate_arguments -> fact_checks -->
+        <path class="relationship" d="M 250 570 L 210 570"/>
+        <line x1="214" y1="570" x2="222" y2="562" stroke="#6b7280" stroke-width="1.5"/>
+        <line x1="214" y1="570" x2="222" y2="570" stroke="#6b7280" stroke-width="1.5"/>
+        <line x1="214" y1="570" x2="222" y2="578" stroke="#6b7280" stroke-width="1.5"/>
+        <line x1="246" y1="564" x2="246" y2="576" stroke="#6b7280" stroke-width="1.5"/>
+
+        <!-- users -> debate_arguments -->
+        <path class="relationship" d="M 510 320 L 335 480" stroke-dasharray="4 2"/>
+
+        <!-- users -> debate_votes -->
+        <path class="relationship" d="M 630 320 L 810 480" stroke-dasharray="4 2"/>
+
+        <!-- ========== ANNOTATIONS ========== -->
+        
+        <!-- Style JSONB -->
+        <g transform="translate(230, 200)">
+          <rect width="135" height="70" fill="#fef3c7" stroke="#d97706" rx="4"/>
+          <text x="8" y="16" font-size="9" font-weight="bold" fill="#92400e">style JSONB:</text>
+          <text x="8" y="32" font-size="8" fill="#78716c" font-family="monospace">{ font: "serif"</text>
+          <text x="8" y="44" font-size="8" fill="#78716c" font-family="monospace">  textColor: "#E53"</text>
+          <text x="8" y="56" font-size="8" fill="#78716c" font-family="monospace">  gradient: "ocean" }</text>
+        </g>
+
+        <!-- Fact check status enum -->
+        <g transform="translate(230, 290)">
+          <rect width="145" height="55" fill="#ecfdf5" stroke="#10b981" rx="4"/>
+          <text x="8" y="16" font-size="9" font-weight="bold" fill="#065f46">fact_check_status:</text>
+          <text x="8" y="32" font-size="8" fill="#6b7280">verified | likely_true |</text>
+          <text x="8" y="44" font-size="8" fill="#6b7280">disputed | false | unchecked</text>
+        </g>
+
+        <!-- Debate status enum -->
+        <g transform="translate(730, 620)">
+          <rect width="130" height="50" fill="#eff6ff" stroke="#3b82f6" rx="4"/>
+          <text x="8" y="16" font-size="9" font-weight="bold" fill="#1e40af">debate.status:</text>
+          <text x="8" y="32" font-size="8" fill="#6b7280">pending | active</text>
+          <text x="8" y="44" font-size="8" fill="#6b7280">voting | completed</text>
+        </g>
+
+        <!-- Vote enum -->
+        <g transform="translate(900, 520)">
+          <rect width="110" height="45" fill="#fdf4ff" stroke="#a855f7" rx="4"/>
+          <text x="8" y="16" font-size="9" font-weight="bold" fill="#7e22ce">vote enum:</text>
+          <text x="8" y="32" font-size="8" fill="#6b7280">challenger |</text>
+          <text x="8" y="44" font-size="8" fill="#6b7280">defender | tie</text>
+        </g>
+
+        <!-- ========== LEGEND ========== -->
+        <g transform="translate(940, 30)">
+          <rect width="180" height="160" fill="white" stroke="#d1d5db" rx="6"/>
+          <text x="90" y="24" text-anchor="middle" font-size="12" font-weight="bold" fill="#374151">Legend</text>
+          
+          <!-- PK -->
+          <text x="15" y="50" font-size="10" font-style="italic" text-decoration="underline" fill="#374151">field_name</text>
+          <text x="100" y="50" font-size="10" fill="#6b7280">Primary Key</text>
+          
+          <!-- FK -->
+          <text x="15" y="72" font-size="10" font-style="italic" fill="#374151">field_id</text>
+          <text x="100" y="72" font-size="10" fill="#6b7280">Foreign Key</text>
+          
+          <!-- One-to-Many -->
+          <line x1="15" y1="95" x2="55" y2="95" stroke="#6b7280" stroke-width="1.5"/>
+          <line x1="19" y1="89" x2="19" y2="101" stroke="#6b7280" stroke-width="1.5"/>
+          <line x1="55" y1="95" x2="47" y2="87" stroke="#6b7280" stroke-width="1.5"/>
+          <line x1="55" y1="95" x2="47" y2="95" stroke="#6b7280" stroke-width="1.5"/>
+          <line x1="55" y1="95" x2="47" y2="103" stroke="#6b7280" stroke-width="1.5"/>
+          <text x="65" y="99" font-size="10" fill="#6b7280">One-to-Many</text>
+          
+          <!-- Self-ref -->
+          <path d="M 15 118 Q 5 118 5 125 Q 5 132 15 132" fill="none" stroke="#6b7280" stroke-width="1.5" stroke-dasharray="4 2"/>
+          <text x="25" y="128" font-size="10" fill="#6b7280">Self-reference</text>
+          
+          <!-- JSONB -->
+          <rect x="15" y="140" width="45" height="14" fill="#fef3c7" stroke="#d97706" rx="2"/>
+          <text x="37" y="151" text-anchor="middle" font-size="8" fill="#92400e">JSONB</text>
+          <text x="65" y="151" font-size="10" fill="#6b7280">JSON Column</text>
+        </g>
+
+      </svg>
+    </div>
+
+    <!-- Relationship Summary -->
+    <div class="legend">
+      <div class="legend-item">
+        <strong>users → posts</strong>
+        <span>One-to-Many (author creates posts)</span>
+      </div>
+      <div class="legend-item">
+        <strong>users ↔ users</strong>
+        <span>Many-to-Many via follows</span>
+      </div>
+      <div class="legend-item">
+        <strong>users ↔ posts</strong>
+        <span>Many-to-Many via likes</span>
+      </div>
+      <div class="legend-item">
+        <strong>posts → posts</strong>
+        <span>Self-ref (reply_to, repost_of)</span>
+      </div>
+      <div class="legend-item">
+        <strong>users → debates</strong>
+        <span>One-to-Many (challenger, defender, winner)</span>
+      </div>
+      <div class="legend-item">
+        <strong>debates → arguments</strong>
+        <span>One-to-Many</span>
+      </div>
+      <div class="legend-item">
+        <strong>debates → votes</strong>
+        <span>One-to-Many (users vote)</span>
+      </div>
+      <div class="legend-item">
+        <strong>posts/arguments → fact_checks</strong>
+        <span>One-to-Many (AI verifications)</span>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>
