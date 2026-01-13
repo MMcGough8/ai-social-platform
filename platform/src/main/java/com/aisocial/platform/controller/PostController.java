@@ -1,7 +1,9 @@
 package com.aisocial.platform.controller;
 
+import com.aisocial.platform.entity.Like;
 import com.aisocial.platform.entity.Post;
 import com.aisocial.platform.service.PostService;
+import com.aisocial.platform.service.LikeService;
 import com.aisocial.platform.dto.CreatePostRequestDTO;
 import com.aisocial.platform.dto.ReplyPostRequestDTO;
 import com.aisocial.platform.dto.RepostRequestDTO;
@@ -18,9 +20,11 @@ import java.util.List;
 public class PostController {
 
     private final PostService postService;
+    private final LikeService likeService;
 
-    public PostController(PostService postService) {
+    public PostController(PostService postService, LikeService likeService) {
         this.postService = postService;
+        this.likeService = likeService;
     }
 
     /**
@@ -72,5 +76,23 @@ public class PostController {
     ) {
         postService.deletePost(userId, postId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{postId}/like")
+    public ResponseEntity<Like> likePost(@PathVariable UUID postId, @RequestParam UUID userId) {
+        Like like = likeService.likePost(userId, postId);
+        return new ResponseEntity<>(like, HttpStatus.CREATED);
+    }
+
+    @DeleteMapping("/{postId}/like")
+    public ResponseEntity<Void> unlikePost(@PathVariable UUID postId, @RequestParam UUID userId) {
+        likeService.unlikePost(userId, postId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{postId}/likes/count")
+    public ResponseEntity<Long> getLikeCount(@PathVariable UUID postId) {
+        long count = likeService.countLikes(postId);
+        return ResponseEntity.ok(count);
     }
 }
