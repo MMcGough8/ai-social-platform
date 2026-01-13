@@ -1,0 +1,29 @@
+package com.aisocial.platform.service;
+
+import com.aisocial.platform.entity.Post;
+import com.aisocial.platform.entity.User;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+public interface PostService {
+
+    Post createPost(UUID authorId, String content);
+
+    Post replyToPost(UUID authorId, UUID parentPostId, String content);
+
+    Post repost(UUID authorId, UUID originalPostId);
+
+    void deletePost(UUID authorId, UUID postId);
+
+    Optional<Post> getPostById(UUID id);
+
+    List<Post> getPostsByUser(User user);
+
+    void likePost(Post post);
+
+    void incrementReplyCount(Post post);
+
+    void incrementRepostCount(Post post);
+}
