@@ -3,36 +3,37 @@ package com.aisocial.platform.controller;
 import com.aisocial.platform.dto.UserDTO;
 import com.aisocial.platform.entity.User;
 import com.aisocial.platform.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.aisocial.platform.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/users")
 @CrossOrigin(origins = "*")
 public class UserController {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserService userService;
+    private final UserRepository userRepository;
+
+    public UserController(UserService userService, UserRepository userRepository) {
+        this.userService = userService;
+        this.userRepository = userRepository;
+    }
 
     @GetMapping
     public ResponseEntity<List<UserDTO>> getAllUsers() {
-        List<UserDTO> users = userRepository.findAll()
-                .stream()
-                .map(UserDTO::fromEntity)
-                .collect(Collectors.toList());
+        List<UserDTO> users = userService.getAllUsers();
         return ResponseEntity.ok(users);
     }
 
     @GetMapping("/me")
     public ResponseEntity<UserDTO> getCurrentUser(@RequestHeader("X-User-Id") UUID userId) {
-        return userRepository.findById(userId)
-                .map(user -> ResponseEntity.ok(UserDTO.fromEntity(user)))
+        return userService.getUserById(userId)
+                .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
@@ -40,13 +41,8 @@ public class UserController {
     public ResponseEntity<UserDTO> getUserById(
             @PathVariable UUID id,
             @RequestHeader(value = "X-User-Id", required = false) UUID currentUserId) {
-        return userRepository.findById(id)
-                .map(user -> {
-                    UserDTO dto = UserDTO.fromEntity(user);
-                    // TODO: Add follower/following/post counts when those repositories exist
-                    // TODO: Add isFollowing check when Follow entity exists
-                    return ResponseEntity.ok(dto);
-                })
+        return userService.getUserById(id, currentUserId)
+                .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
@@ -54,11 +50,8 @@ public class UserController {
     public ResponseEntity<UserDTO> getUserByUsername(
             @PathVariable String username,
             @RequestHeader(value = "X-User-Id", required = false) UUID currentUserId) {
-        return userRepository.findByUsername(username)
-                .map(user -> {
-                    UserDTO dto = UserDTO.fromEntity(user);
-                    return ResponseEntity.ok(dto);
-                })
+        return userService.getUserByUsername(username, currentUserId)
+                .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
