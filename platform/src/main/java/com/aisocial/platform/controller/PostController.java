@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
+import java.util.List;
 
 @RestController
 @RequestMapping("/posts")
@@ -29,6 +30,12 @@ public class PostController {
     public ResponseEntity<Post> createPost(@RequestBody CreatePostRequestDTO request) {
         Post post = postService.createPost(request.getUserId(), request.getContent());
         return new ResponseEntity<>(post, HttpStatus.CREATED);
+    }
+
+    @GetMapping("/feed/{userId}")
+    public ResponseEntity<List<Post>> getFeed(@PathVariable UUID userId) {
+        List<Post> feed = postService.getFeedForUser(userId);
+        return ResponseEntity.ok(feed);
     }
 
     /**

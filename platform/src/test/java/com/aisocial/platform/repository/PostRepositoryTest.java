@@ -1,5 +1,6 @@
 package com.aisocial.platform.repository;
 
+import com.aisocial.platform.entity.Follow;
 import com.aisocial.platform.entity.Post;
 import com.aisocial.platform.entity.User;
 import org.junit.jupiter.api.DisplayName;
@@ -25,6 +26,9 @@ class PostRepositoryTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private FollowRepository followRepository;
 
     @Test
     @DisplayName("Should find posts by author")
@@ -99,5 +103,34 @@ class PostRepositoryTest {
         assertThat(reposts).hasSize(1);
         assertThat(reposts.get(0).getRepostOf()).isEqualTo(original);
         assertThat(reposts.get(0).getContent()).isEqualTo("Repost content"); // optional extra check
+    }
+
+    @Test
+    void shouldReturnChronologicalFeedForFollowedUsers() {
+        User alice = userRepository.save(new User("alice", "Alice", ""));
+        User bob = userRepository.save(new User("bob", "Bob", ""));
+        User carol = userRepository.save(new User("carol", "Carol", ""));
+
+        // Alice follows Bob and Carol
+        followRepository.save(new Follow(alice, bob));
+        followRepository.save(new Follow(alice, carol));
+
+        Post bobPost = postRepository.save(new Post(bob, "Bob post"));
+        Post carolPost = postRepository.save(new Post(carol, "Carol post"));
+
+        List<Post> feed =
+            postRepository.findFeedPostsByAuthors(
+                followRepository.findFollowingByUserId(alice.getId())
+            );
+
+        assertThat(feed).hasSize(2);
+
+        // Assert ordering, not timestamps
+        assertThat(feed)
+            .extracting(Post::getId)
+            .containsExactly(
+                carolPost.getId(),
+                bobPost.getId()
+            );
     }
 }

@@ -1,7 +1,9 @@
 package com.aisocial.platform.service;
 
+import com.aisocial.platform.entity.Follow;
 import com.aisocial.platform.entity.Post;
 import com.aisocial.platform.entity.User;
+import com.aisocial.platform.repository.FollowRepository;
 import com.aisocial.platform.repository.PostRepository;
 import com.aisocial.platform.repository.UserRepository;
 
@@ -16,11 +18,14 @@ import java.util.UUID;
 public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
+    private final FollowRepository followRepository;
     private final UserRepository userRepository;
 
     public PostServiceImpl(PostRepository postRepository,
+                           FollowRepository followRepository, 
                            UserRepository userRepository) {
         this.postRepository = postRepository;
+        this.followRepository = followRepository;
         this.userRepository = userRepository;
     }
 
@@ -106,5 +111,19 @@ public class PostServiceImpl implements PostService {
     public void incrementRepostCount(Post post) {
         post.incrementRepostCount();
         postRepository.save(post);
+    }
+
+    @Override
+    public List<Post> getFeedForUser(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        List<User> followedUsers = followRepository.findFollowingByUserId(userId);
+
+        if (followedUsers.isEmpty()) {
+            return List.of();
+        }
+
+        return postRepository.findFeedPostsByAuthors(followedUsers);
     }
 }
