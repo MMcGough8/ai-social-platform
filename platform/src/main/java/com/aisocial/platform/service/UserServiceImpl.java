@@ -139,7 +139,7 @@ public class UserServiceImpl implements UserService {
 
         dto.setFollowerCount(followRepository.countByFollowing_Id(user.getId()));
         dto.setFollowingCount(followRepository.countByFollower_Id(user.getId()));
-        dto.setPostCount((long) postRepository.findByAuthor(user).size());
+        dto.setPostCount(postRepository.countByAuthor(user));
 
         if (viewerId != null && !viewerId.equals(user.getId())) {
             dto.setIsFollowing(followRepository.existsByFollower_IdAndFollowing_Id(viewerId, user.getId()));
