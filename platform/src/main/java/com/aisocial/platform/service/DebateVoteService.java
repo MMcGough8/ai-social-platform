@@ -1,7 +1,9 @@
 package com.aisocial.platform.service;
 
+import com.aisocial.platform.entity.Debate;
 import com.aisocial.platform.entity.DebateVote;
 import com.aisocial.platform.entity.VoteType;
+import com.aisocial.platform.repository.DebateRepository;
 import com.aisocial.platform.repository.DebateVoteRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,9 +17,20 @@ import java.util.UUID;
 public class DebateVoteService {
 
     private final DebateVoteRepository debateVoteRepository;
+    private final DebateRepository debateRepository;
 
-    public DebateVoteService(DebateVoteRepository debateVoteRepository) {
+    public DebateVoteService(DebateVoteRepository debateVoteRepository, DebateRepository debateRepository) {
         this.debateVoteRepository = debateVoteRepository;
+        this.debateRepository = debateRepository;
+    }
+
+    public boolean isParticipant(UUID debateId, UUID userId) {
+        Optional<Debate> debate = debateRepository.findById(debateId);
+        if (debate.isEmpty()) {
+            return false;
+        }
+        Debate d = debate.get();
+        return userId.equals(d.getChallenger().getId()) || userId.equals(d.getDefender().getId());
     }
 
     public List<DebateVote> findAll() {
@@ -25,6 +38,9 @@ public class DebateVoteService {
     }
 
     public DebateVote save(DebateVote vote) {
+        if (isParticipant(vote.getDebateId(), vote.getUserId())) {
+            throw new IllegalArgumentException("Debate participants cannot vote on their own debate");
+        }
         return debateVoteRepository.save(vote);
     }
 

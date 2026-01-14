@@ -2,6 +2,7 @@ package com.aisocial.platform.service;
 
 import com.aisocial.platform.entity.DebateVote;
 import com.aisocial.platform.entity.VoteType;
+import com.aisocial.platform.repository.DebateRepository;
 import com.aisocial.platform.repository.DebateVoteRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,11 +26,14 @@ class DebateVoteServiceTest {
     @Autowired
     private DebateVoteRepository debateVoteRepository;
 
+    @Autowired
+    private DebateRepository debateRepository;
+
     private DebateVoteService service;
 
     @Test
     void testSaveAndFind() {
-        service = new DebateVoteService(debateVoteRepository);
+        service = new DebateVoteService(debateVoteRepository, debateRepository);
 
         UUID debateId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
@@ -54,7 +58,7 @@ class DebateVoteServiceTest {
 
     @Test
     void testDelete() {
-        service = new DebateVoteService(debateVoteRepository);
+        service = new DebateVoteService(debateVoteRepository, debateRepository);
 
         UUID debateId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();

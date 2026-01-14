@@ -41,8 +41,12 @@ public class DebateVoteController {
     // -----------------------------
     @PostMapping
     public ResponseEntity<DebateVote> create(@RequestBody DebateVote vote) {
-        DebateVote saved = debateVoteService.save(vote);
-        return ResponseEntity.ok(saved);
+        try {
+            DebateVote saved = debateVoteService.save(vote);
+            return ResponseEntity.ok(saved);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(403).build();
+        }
     }
 
     // -----------------------------

@@ -93,6 +93,22 @@ class DebateVoteControllerTest {
     }
 
     @Test
+    @DisplayName("Should return 403 when participant tries to vote on own debate")
+    void testCreateReturns403WhenParticipantVotes() {
+        DebateVote vote = new DebateVote();
+        vote.setDebateId(UUID.randomUUID());
+        vote.setUserId(UUID.randomUUID());
+        vote.setVote(VoteType.CHALLENGER);
+
+        when(service.save(any(DebateVote.class)))
+                .thenThrow(new IllegalArgumentException("Debate participants cannot vote on their own debate"));
+
+        ResponseEntity<DebateVote> response = controller.create(vote);
+        assertEquals(403, response.getStatusCode().value());
+        verify(service, times(1)).save(vote);
+    }
+
+    @Test
     @DisplayName("Should update a vote if exists")
     void testUpdateFound() {
         UUID id = UUID.randomUUID();
