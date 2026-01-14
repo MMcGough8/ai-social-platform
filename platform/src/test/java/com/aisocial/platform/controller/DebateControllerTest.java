@@ -95,7 +95,7 @@ class DebateControllerTest {
     void shouldCreateChallenge() throws Exception {
         CreateDebateRequestDTO request = new CreateDebateRequestDTO(defenderId, "Test topic");
 
-        when(debateService.createChallenge((challengerId), eq(defenderId), eq("Test topic")))
+        when(debateService.createChallenge(eq(challengerId), eq(defenderId), eq("Test topic")))
                 .thenReturn(debateDTO);
 
         mockMvc.perform(post("/api/debates")
