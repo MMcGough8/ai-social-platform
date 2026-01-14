@@ -1,7 +1,7 @@
 
 
 import React, { useState } from 'react';
-import HelpBadge from '../common/HelpBadge';
+
 
 function ComposeBox() {
   const [postText, setPostText] = useState('');
@@ -80,65 +80,58 @@ function ComposeBox() {
         />
 
         {/* Actions */}
-        <div className="flex justify-between items-center mt-4 pt-4 border-t border-white/10">
-          <div className="flex gap-1 flex-wrap">
-            <button className="w-[38px] h-[38px] rounded-xl flex items-center justify-center 
-                               cursor-pointer transition-all duration-300 text-xl relative
-                               bg-transparent border-none hover:bg-veritas-pink/15 hover:scale-110"
-                    title="Add image">
-              🖼️
-              <HelpBadge number="18" tooltip="Feature #18: Add Multimedia" />
-            </button>
-            <button className="w-[38px] h-[38px] rounded-xl flex items-center justify-center 
-                               cursor-pointer transition-all duration-300 text-xl relative
-                               bg-transparent border-none hover:bg-veritas-pink/15 hover:scale-110"
-                    title="Add video">
-              🎬
-              <HelpBadge number="18" tooltip="Feature #18: Add Video" />
-            </button>
-            <button className="w-[38px] h-[38px] rounded-xl flex items-center justify-center 
-                               cursor-pointer transition-all duration-300 text-xl relative
-                               bg-transparent border-none hover:bg-veritas-pink/15 hover:scale-110"
-                    title="Create poll">
-              📊
-              <HelpBadge number="5" tooltip="Feature #5: Create Poll" />
-            </button>
-            <button className="w-[38px] h-[38px] rounded-xl flex items-center justify-center 
-                               cursor-pointer transition-all duration-300 text-xl relative
-                               bg-transparent border-none hover:bg-veritas-pink/15 hover:scale-110"
-                    title="Add emoji">
-              😊
-              <HelpBadge number="7" tooltip="Feature #7: Emoji Support" />
-            </button>
-            <button className="w-[38px] h-[38px] rounded-xl flex items-center justify-center 
-                               cursor-pointer transition-all duration-300 text-xl relative
-                               bg-transparent border-none hover:bg-veritas-pink/15 hover:scale-110"
-                    title="Add hashtag">
-              #
-              <HelpBadge number="6" tooltip="Feature #6: Add Hashtag" />
-            </button>
-            <button className="w-[38px] h-[38px] rounded-xl flex items-center justify-center 
-                               cursor-pointer transition-all duration-300 text-xl relative
-                               bg-transparent border-none hover:bg-veritas-pink/15 hover:scale-110"
-                    title="Schedule post">
-              ⏰
-              <HelpBadge number="9" tooltip="Feature #9: Timed Messages" />
-            </button>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className={`text-sm font-semibold flex items-center gap-1 ${getCharCountClass()}`}>
-              {postText.length}/{maxChars}
-              <HelpBadge number="4" tooltip="Feature #4: Character Limit" bgColor="rgba(255,255,255,0.2)" />
-            </span>
-            <button 
-              className="bg-gradient-to-br from-veritas-pink to-veritas-pink-dark 
-                         px-7 py-2.5 rounded-xl font-bold cursor-pointer 
-                         shadow-[0_4px_16px_rgba(255,107,157,0.3)] text-[15px] 
-                         border-none text-white transition-all duration-300
-                         hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(255,107,157,0.4)]
-                         disabled:opacity-50 disabled:cursor-not-allowed"
-              onClick={handlePost}
-              disabled={postText.trim().length === 0}
+       <div className="flex justify-between items-center mt-4 pt-4 border-t border-white/10">
+  <div className="flex gap-1 flex-wrap">
+    <button className="w-[38px] h-[38px] rounded-xl flex items-center justify-center 
+                       cursor-pointer transition-all duration-300 text-xl
+                       bg-transparent border-none hover:bg-veritas-pink/15 hover:scale-110"
+            title="Add image">
+      🖼️
+    </button>
+    <button className="w-[38px] h-[38px] rounded-xl flex items-center justify-center 
+                       cursor-pointer transition-all duration-300 text-xl
+                       bg-transparent border-none hover:bg-veritas-pink/15 hover:scale-110"
+            title="Add video">
+      🎬
+    </button>
+    <button className="w-[38px] h-[38px] rounded-xl flex items-center justify-center 
+                       cursor-pointer transition-all duration-300 text-xl
+                       bg-transparent border-none hover:bg-veritas-pink/15 hover:scale-110"
+            title="Create poll">
+      📊
+    </button>
+    <button className="w-[38px] h-[38px] rounded-xl flex items-center justify-center 
+                       cursor-pointer transition-all duration-300 text-xl
+                       bg-transparent border-none hover:bg-veritas-pink/15 hover:scale-110"
+            title="Add emoji">
+      😊
+    </button>
+    <button className="w-[38px] h-[38px] rounded-xl flex items-center justify-center 
+                       cursor-pointer transition-all duration-300 text-xl
+                       bg-transparent border-none hover:bg-veritas-pink/15 hover:scale-110"
+            title="Add hashtag">
+      #
+    </button>
+    <button className="w-[38px] h-[38px] rounded-xl flex items-center justify-center 
+                       cursor-pointer transition-all duration-300 text-xl
+                       bg-transparent border-none hover:bg-veritas-pink/15 hover:scale-110"
+            title="Schedule post">
+      ⏰
+    </button>
+  </div>
+  <div className="flex items-center gap-3">
+    <span className={`text-sm font-semibold flex items-center gap-1 ${getCharCountClass()}`}>
+      {postText.length}/{maxChars}
+    </span>
+    <button 
+      className="bg-gradient-to-br from-veritas-pink to-veritas-pink-dark 
+                 px-7 py-2.5 rounded-xl font-bold cursor-pointer 
+                 shadow-[0_4px_16px_rgba(255,107,157,0.3)] text-[15px] 
+                 border-none text-white transition-all duration-300
+                 hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(255,107,157,0.4)]
+                 disabled:opacity-50 disabled:cursor-not-allowed"
+      onClick={handlePost}
+      disabled={postText.trim().length === 0}
             >
               Share
             </button>

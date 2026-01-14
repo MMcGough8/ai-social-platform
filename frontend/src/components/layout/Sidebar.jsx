@@ -34,6 +34,7 @@ function Sidebar() {
       <div className="bg-veritas-pink/10 border-l-4 border-veritas-pink px-3 py-2 mx-3 my-2.5 
                       text-xs font-bold text-veritas-coral uppercase tracking-wider">
         📍 FEATURE #1 - USER PAGE
+        
       </div>
 
       {/* Navigation */}
