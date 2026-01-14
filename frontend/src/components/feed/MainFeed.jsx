@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import ComposeBox from './ComposeBox';
 import Tweet from './Tweet';
-import './MainFeed.css';
 
 function MainFeed() {
   const [activeTab, setActiveTab] = useState('forYou');
@@ -72,39 +71,58 @@ function MainFeed() {
   ];
 
   return (
-    <div className="main-feed">
-      <div className="feed-header">
+    <div className="bg-white/[0.03] rounded-3xl overflow-hidden backdrop-blur-[10px] border border-white/10">
+      {/* Feed Header with Tabs */}
+      <div className="flex sticky top-0 bg-[rgba(15,5,25,0.95)] backdrop-blur-[20px] z-10 
+                      p-2 border-b border-white/10">
         <div 
-          className={`tab ${activeTab === 'forYou' ? 'active' : ''}`}
+          className={`flex-1 p-3.5 text-center font-bold cursor-pointer relative 
+                     text-[15px] rounded-xl transition-all duration-300
+                     ${activeTab === 'forYou' 
+                       ? 'text-white bg-gradient-to-br from-veritas-pink/20 to-veritas-purple/20' 
+                       : 'text-white/50 hover:text-white/80 hover:bg-white/5'}`}
           onClick={() => setActiveTab('forYou')}
         >
           For You
         </div>
         <div 
-          className={`tab ${activeTab === 'following' ? 'active' : ''}`}
+          className={`flex-1 p-3.5 text-center font-bold cursor-pointer relative 
+                     text-[15px] rounded-xl transition-all duration-300
+                     ${activeTab === 'following' 
+                       ? 'text-white bg-gradient-to-br from-veritas-pink/20 to-veritas-purple/20' 
+                       : 'text-white/50 hover:text-white/80 hover:bg-white/5'}`}
           onClick={() => setActiveTab('following')}
         >
           Following
         </div>
         <div 
-          className={`tab ${activeTab === 'trending' ? 'active' : ''}`}
+          className={`flex-1 p-3.5 text-center font-bold cursor-pointer relative 
+                     text-[15px] rounded-xl transition-all duration-300
+                     ${activeTab === 'trending' 
+                       ? 'text-white bg-gradient-to-br from-veritas-pink/20 to-veritas-purple/20' 
+                       : 'text-white/50 hover:text-white/80 hover:bg-white/5'}`}
           onClick={() => setActiveTab('trending')}
         >
           Trending
         </div>
       </div>
 
+      {/* Compose Box */}
       <ComposeBox />
 
-      <div className="feed-info-banner">
-        <div className="feed-info-title">📚 EXPLORE FEATURES BELOW:</div>
-        <div className="feed-info-text">
-          Scroll down to see examples of <strong>Polls</strong> (Feature #5), <strong>Debates</strong> (Feature #11), 
-          <strong>Reactions</strong> (Feature #10), <strong>Edit</strong> (Feature #8), and more!
+      {/* Info Banner */}
+      <div className="p-4 bg-veritas-pink/5 border-b border-white/10">
+        <div className="text-[13px] font-bold text-veritas-coral mb-2">
+          📚 EXPLORE FEATURES BELOW:
+        </div>
+        <div className="text-xs text-white/70 leading-relaxed">
+          Scroll down to see examples of <strong className="text-white font-semibold">Polls</strong> (Feature #5), <strong className="text-white font-semibold">Debates</strong> (Feature #11), 
+          <strong className="text-white font-semibold">Reactions</strong> (Feature #10), <strong className="text-white font-semibold">Edit</strong> (Feature #8), and more!
         </div>
       </div>
 
-      <div className="tweet-list">
+      {/* Tweet List */}
+      <div>
         {tweets.map(tweet => (
           <Tweet key={tweet.id} {...tweet} />
         ))}
