@@ -6,7 +6,10 @@ import com.aisocial.platform.repository.FollowRepository;
 import com.aisocial.platform.repository.PostRepository;
 import com.aisocial.platform.repository.UserRepository;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.time.Instant;
 import java.util.List;
@@ -129,5 +132,32 @@ public class PostServiceImpl implements PostService {
     @Override
     public List<Post> getReplies(UUID postId) {
         return postRepository.findByReplyTo_IdOrderByCreatedAtAsc(postId);
+    }
+    
+    @Override
+    public Page<Post> searchPosts(
+            String query,
+            UUID authorId,
+            Instant start,
+            Instant end,
+            int page,
+            int size
+    ) {
+        User author = null;
+
+        if (authorId != null) {
+            author = userRepository.findById(authorId)
+                    .orElseThrow(() -> new IllegalArgumentException("Author not found"));
+        }
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        return postRepository.searchPosts(
+                query,
+                author,
+                start,
+                end,
+                pageable
+        );
     }
 }
