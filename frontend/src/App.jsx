@@ -1,12 +1,15 @@
 import React from 'react';
+import { UserProvider } from './context/UserContext';
 import Layout from './components/layout/Layout';
 import './styles/App.css';
 
 function App() {
   return (
-    <div className="App">
-      <Layout />
-    </div>
+    <UserProvider>
+      <div className="App">
+        <Layout />
+      </div>
+    </UserProvider>
   );
 }
 
