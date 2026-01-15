@@ -1,18 +1,29 @@
 
 
 import React from 'react';
+import { useUser } from '../../context/UserContext';
 import HelpBadge from '../common/HelpBadge';
 
 function Sidebar() {
+  const { currentUser, allUsers, loading, switchUser } = useUser();
+
   const navItems = [
     { icon: '🏠', label: 'Home', badge: null },
-  { icon: '🌍', label: 'Explore', badge: null },
-  { icon: '💬', label: 'Messages', badge: null },
-  { icon: '👥', label: 'Groups', badge: null },
-  { icon: '⭐', label: 'Bookmarks', badge: null },
-  { icon: '👤', label: 'Profile', badge: null },
-  { icon: '🤝', label: 'Friends', badge: null },
+    { icon: '🌍', label: 'Explore', badge: null },
+    { icon: '💬', label: 'Messages', badge: null },
+    { icon: '👥', label: 'Groups', badge: null },
+    { icon: '⭐', label: 'Bookmarks', badge: null },
+    { icon: '👤', label: 'Profile', badge: null },
+    { icon: '🤝', label: 'Friends', badge: null },
   ];
+
+  if (loading) {
+    return (
+      <div className="py-[30px] h-screen sticky top-0 flex items-center justify-center">
+        <div className="text-veritas-coral">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="py-[30px] h-screen sticky top-0">
@@ -30,11 +41,32 @@ function Sidebar() {
         </div>
       </div>
 
+      {/* User Selector Dropdown */}
+      <div className="mx-3 mb-4 p-3 bg-gradient-to-br from-veritas-purple/20 to-veritas-pink/20 
+                      border-2 border-veritas-pink/30 rounded-2xl">
+        <label className="block text-xs font-bold text-veritas-coral mb-2 uppercase tracking-wider">
+          👤 Demo Mode - Select User:
+        </label>
+        <select 
+          value={currentUser?.id || ''} 
+          onChange={(e) => switchUser(e.target.value)}
+          className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 
+                     text-white font-semibold cursor-pointer
+                     focus:outline-none focus:border-veritas-pink focus:bg-white/15
+                     transition-all duration-300"
+        >
+          {allUsers.map(user => (
+            <option key={user.id} value={user.id} className="bg-gray-900">
+              {user.displayName} (@{user.username})
+            </option>
+          ))}
+        </select>
+      </div>
+
       {/* Section Label */}
       <div className="bg-veritas-pink/10 border-l-4 border-veritas-pink px-3 py-2 mx-3 my-2.5 
                       text-xs font-bold text-veritas-coral uppercase tracking-wider">
         📍 FEATURE #1 - USER PAGE
-        
       </div>
 
       {/* Navigation */}
@@ -92,33 +124,35 @@ function Sidebar() {
         Create Post
       </button>
 
-      {/* User Profile */}
-      <div className="flex items-center gap-3 px-5 py-4 rounded-[20px] mx-3 mt-5 
-                      bg-white/5 backdrop-blur-[10px] border border-white/10 
-                      cursor-pointer transition-all duration-300 
-                      hover:bg-white/10 hover:-translate-y-0.5">
-        <div className="w-11 h-11 rounded-[14px] bg-gradient-to-br from-veritas-blue to-veritas-blue-dark 
-                        flex items-center justify-center text-xl 
-                        shadow-[0_4px_12px_rgba(102,126,234,0.3)]">
-          🎨
-        </div>
-        <div className="flex-1">
-          <div className="font-bold text-sm">Your Name</div>
-          <div className="flex items-center gap-2 mt-1">
-            <span className="text-[13px] text-white/50">@yourhandle</span>
-            <div className="bg-gradient-to-br from-[#10b981] to-[#059669] text-white 
-                            px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1">
-              <span>🛡️</span>
-              <span>92</span>
-              <HelpBadge 
-                number="12" 
-                tooltip="Feature #12: Trust Score - Build reputation!" 
-                bgColor="rgba(255,255,255,0.2)"
-              />
+      {/* User Profile - Now shows REAL data */}
+      {currentUser && (
+        <div className="flex items-center gap-3 px-5 py-4 rounded-[20px] mx-3 mt-5 
+                        bg-white/5 backdrop-blur-[10px] border border-white/10 
+                        cursor-pointer transition-all duration-300 
+                        hover:bg-white/10 hover:-translate-y-0.5">
+          <div className="w-11 h-11 rounded-[14px] bg-gradient-to-br from-veritas-blue to-veritas-blue-dark 
+                          flex items-center justify-center text-xl 
+                          shadow-[0_4px_12px_rgba(102,126,234,0.3)]">
+            🎨
+          </div>
+          <div className="flex-1">
+            <div className="font-bold text-sm">{currentUser.displayName}</div>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-[13px] text-white/50">@{currentUser.username}</span>
+              <div className="bg-gradient-to-br from-[#10b981] to-[#059669] text-white 
+                              px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1">
+                <span>🛡️</span>
+                <span>{Math.round(currentUser.trustScore)}</span>
+                <HelpBadge 
+                  number="12" 
+                  tooltip="Feature #12: Trust Score - Build reputation!" 
+                  bgColor="rgba(255,255,255,0.2)"
+                />
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
