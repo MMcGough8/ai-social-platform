@@ -134,10 +134,13 @@ public class PostServiceImpl implements PostService {
         reply.setAuthor(author);
         reply.setContent(content);
         reply.setReplyTo(parent);
+        reply.setCreatedAt(Instant.now());
 
+        // Update parent reply count
         parent.incrementReplyCount();
         postRepository.save(parent);
 
+        // Save and return the reply
         return postRepository.save(reply);
     }
 

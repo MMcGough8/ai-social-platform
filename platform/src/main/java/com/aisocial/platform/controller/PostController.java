@@ -83,10 +83,14 @@ public class PostController {
     @PostMapping("/{postId}/reply")
     public ResponseEntity<PostResponseDTO> replyToPost(
             @PathVariable UUID postId,
-            @RequestBody ReplyPostRequestDTO request
-    ) {
+            @RequestBody ReplyPostRequestDTO request,
+            @RequestHeader(value = "X-User-Id", required = false) UUID currentUserId) {
+        
         Post reply = postService.replyToPost(request.getUserId(), postId, request.getContent());
-        PostResponseDTO dto = postService.convertPostToDTO(reply, request.getUserId());
+        
+        // Convert to DTO (use your existing convertToDTO method)
+        PostResponseDTO dto = postService.convertPostToDTO(reply, currentUserId);
+        
         return new ResponseEntity<>(dto, HttpStatus.CREATED);
     }
 
