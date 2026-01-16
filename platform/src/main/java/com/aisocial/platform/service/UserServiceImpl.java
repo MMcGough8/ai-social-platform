@@ -75,15 +75,16 @@ public class UserServiceImpl implements UserService {
             throw new IllegalStateException("Users cannot follow themselves");
         }
 
+        // Check if already following - if so, just return (idempotent)
+        if (followRepository.existsByFollower_IdAndFollowing_Id(followerId, followingId)) {
+            return; // Already following, no-op
+        }
+
         User follower = userRepository.findById(followerId)
                 .orElseThrow(() -> new IllegalArgumentException("Follower user not found"));
 
         User following = userRepository.findById(followingId)
                 .orElseThrow(() -> new IllegalArgumentException("User to follow not found"));
-
-        if (followRepository.existsByFollower_IdAndFollowing_Id(followerId, followingId)) {
-            throw new IllegalStateException("Already following this user");
-        }
 
         Follow follow = new Follow(follower, following);
         followRepository.save(follow);
@@ -92,8 +93,9 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void unfollowUser(UUID followerId, UUID followingId) {
+        // Check if following - if not, just return (idempotent)
         if (!followRepository.existsByFollower_IdAndFollowing_Id(followerId, followingId)) {
-            throw new IllegalArgumentException("Follow relationship does not exist");
+            return; // Not following, no-op
         }
 
         followRepository.deleteByFollower_IdAndFollowing_Id(followerId, followingId);

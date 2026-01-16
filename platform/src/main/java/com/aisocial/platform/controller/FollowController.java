@@ -5,7 +5,9 @@ import com.aisocial.platform.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -19,19 +21,47 @@ public class FollowController {
         this.userService = userService;
     }
 
+    /**
+     * Toggle follow/unfollow - similar to the like button behavior
+     * Returns the new follow state
+     */
     @PostMapping("/{id}/follow")
-    public ResponseEntity<Void> followUser(
+    public ResponseEntity<Map<String, Object>> toggleFollow(
             @PathVariable UUID id,
             @RequestHeader("X-User-Id") UUID currentUserId) {
-        userService.followUser(currentUserId, id);
-        return ResponseEntity.ok().build();
+        
+        boolean isNowFollowing;
+        boolean wasFollowing = userService.isFollowing(currentUserId, id);
+        
+        if (wasFollowing) {
+            userService.unfollowUser(currentUserId, id);
+            isNowFollowing = false;
+        } else {
+            userService.followUser(currentUserId, id);
+            isNowFollowing = true;
+        }
+        
+        long followerCount = userService.getFollowerCount(id);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("following", isNowFollowing);
+        response.put("followerCount", followerCount);
+        
+        return ResponseEntity.ok(response);
     }
 
+    /**
+     * Legacy unfollow endpoint - kept for backwards compatibility
+     */
     @DeleteMapping("/{id}/follow")
     public ResponseEntity<Void> unfollowUser(
             @PathVariable UUID id,
             @RequestHeader("X-User-Id") UUID currentUserId) {
-        userService.unfollowUser(currentUserId, id);
+        
+        if (userService.isFollowing(currentUserId, id)) {
+            userService.unfollowUser(currentUserId, id);
+        }
+        
         return ResponseEntity.noContent().build();
     }
 

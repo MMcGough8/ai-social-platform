@@ -211,7 +211,18 @@ public class PostServiceImpl implements PostService {
         dto.setFactCheckStatus(post.getFactCheckStatus());
         dto.setFactCheckScore(post.getFactCheckScore());
         
-        dto.setAuthor(new UserDTO(post.getAuthor()));
+        // Create UserDTO and populate isFollowing flag
+        UserDTO authorDTO = new UserDTO(post.getAuthor());
+        if (currentUserId != null && !currentUserId.equals(post.getAuthor().getId())) {
+            boolean isFollowing = followRepository.existsByFollower_IdAndFollowing_Id(
+                currentUserId, 
+                post.getAuthor().getId()
+            );
+            authorDTO.setIsFollowing(isFollowing);
+        } else {
+            authorDTO.setIsFollowing(false);
+        }
+        dto.setAuthor(authorDTO);
         
         if (post.getReplyTo() != null) {
             dto.setReplyToId(post.getReplyTo().getId());
@@ -222,7 +233,20 @@ public class PostServiceImpl implements PostService {
             PostResponseDTO repostDto = new PostResponseDTO();
             repostDto.setId(post.getRepostOf().getId());
             repostDto.setContent(post.getRepostOf().getContent());
-            repostDto.setAuthor(new UserDTO(post.getRepostOf().getAuthor()));
+            
+            // Also populate isFollowing for repost author
+            UserDTO repostAuthorDTO = new UserDTO(post.getRepostOf().getAuthor());
+            if (currentUserId != null && !currentUserId.equals(post.getRepostOf().getAuthor().getId())) {
+                boolean isFollowing = followRepository.existsByFollower_IdAndFollowing_Id(
+                    currentUserId, 
+                    post.getRepostOf().getAuthor().getId()
+                );
+                repostAuthorDTO.setIsFollowing(isFollowing);
+            } else {
+                repostAuthorDTO.setIsFollowing(false);
+            }
+            repostDto.setAuthor(repostAuthorDTO);
+            
             dto.setRepostOf(repostDto);
         }
         
