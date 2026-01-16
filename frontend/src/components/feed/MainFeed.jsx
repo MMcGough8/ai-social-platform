@@ -113,6 +113,7 @@ function MainFeed() {
                      ${activeTab === 'following' 
                        ? 'text-white bg-gradient-to-br from-veritas-pink/20 to-veritas-purple/20' 
                        : 'text-white/50 hover:text-white/80 hover:bg-white/5'}`}
+          
           onClick={() => setActiveTab('following')}
         >
           Following
@@ -126,6 +127,16 @@ function MainFeed() {
           onClick={() => setActiveTab('yourPosts')}
         >
           Your Posts
+        </div>
+        <div 
+          className={`flex-1 p-3.5 text-center font-bold cursor-pointer relative 
+                     text-[15px] rounded-xl transition-all duration-300
+                     ${activeTab === 'debates' 
+                       ? 'text-white bg-gradient-to-br from-veritas-pink/20 to-veritas-purple/20' 
+                       : 'text-white/50 hover:text-white/80 hover:bg-white/5'}`}
+          onClick={() => setActiveTab('debates')}
+        >
+          ⚔️ Debates
         </div>
       </div>
 
@@ -143,29 +154,37 @@ function MainFeed() {
         </div>
       )}
 
-      {!loading && !error && posts.length === 0 && (
-        <div className="p-20 text-center text-white/50">
-          {activeTab === 'following' 
-            ? 'No posts from people you follow yet. Follow some users to see their posts here!'
-            : "You haven't posted anything yet. Create your first post above!"}
-        </div>
-      )}
+  </div>
+)}
 
-      {!loading && !error && posts.length > 0 && (
-        <div>
-          {posts.map(post => (
-            <Tweet 
-              key={post.id} 
-              post={post}
-              currentUserId={currentUser.id}
-              onPostUpdated={handlePostUpdated}
-              onAuthorFollowChange={handleAuthorFollowChange}
-            />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
+{!loading && !error && activeTab === 'debates' && debates.length === 0 && (
+  <div className="p-20 text-center text-white/50">
+    No active debates. Create a debate challenge to get started!
+  </div>
+)}
 
-export default MainFeed;
+{!loading && !error && activeTab !== 'debates' && posts.length > 0 && (
+  <div>
+    {posts.map(post => (
+      <Tweet 
+        key={post.id} 
+        post={post}
+        currentUserId={currentUser.id}
+        onPostUpdated={handlePostUpdated}
+        onAuthorFollowChange={handleAuthorFollowChange}
+      />
+    ))}
+  </div>
+)}
+
+{!loading && !error && activeTab === 'debates' && debates.length > 0 && (
+  <div>
+    {debates.map(debate => (
+      <DebateCard 
+        key={debate.id} 
+        debate={debate}
+        onDebateUpdated={loadPosts}
+      />
+    ))}
+  </div>
+)}
