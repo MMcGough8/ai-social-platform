@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import postService from '../../services/postService';
 import followService from '../../services/followService';
 import ReplyModal from './ReplyModal';
+import factCheckService from '../../services/factcheckService';
+import { FactCheckBadge, FactCheckButton, FactCheckModal } from '../factcheck';
 
 function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, depth = 0 }) {
   const [isLiked, setIsLiked] = useState(post.isLikedByCurrentUser || false);
@@ -17,6 +19,18 @@ function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, depth
   const [showReplies, setShowReplies] = useState(false);
   const [loadingReplies, setLoadingReplies] = useState(false);
   const [repliesLoaded, setRepliesLoaded] = useState(false);
+
+  // Fact-check state
+  const [isFactChecking, setIsFactChecking] = useState(false);
+  const [factCheckResult, setFactCheckResult] = useState(null);
+  const [showFactCheckModal, setShowFactCheckModal] = useState(false);
+  const [factCheckStatus, setFactCheckStatus] = useState(post.factCheckStatus);
+  const [factCheckScore, setFactCheckScore] = useState(post.factCheckScore);
+
+  // Repost state
+  const [isReposted, setIsReposted] = useState(post.isRepostedByCurrentUser || false);
+  const [localRepostCount, setLocalRepostCount] = useState(post.repostCount || 0);
+  const [isReposting, setIsReposting] = useState(false);
 
   const author = post.author;
   const content = post.content;
@@ -65,13 +79,26 @@ function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, depth
   };
 
   const handleRepost = async () => {
+    if (isReposting || isReposted) return; // Prevent double repost
+
     try {
+      setIsReposting(true);
+      // Optimistic UI update
+      setIsReposted(true);
+      setLocalRepostCount(prev => prev + 1);
+
       await postService.repost(currentUserId, post.id);
+
       if (onPostUpdated) {
         onPostUpdated();
       }
     } catch (error) {
-      console.error('Error reposting:', error);
+      // Revert optimistic update on error
+      setIsReposted(false);
+      setLocalRepostCount(prev => prev - 1);
+      console.error('Error reposting:', error.response?.data || error.message || error);
+    } finally {
+      setIsReposting(false);
     }
   };
 
@@ -139,6 +166,43 @@ function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, depth
     setShowReplyModal(false);
   };
 
+  // Fact-check handlers
+  const handleFactCheck = async () => {
+    // If already checked, just show the modal
+    if (factCheckStatus && factCheckStatus !== 'UNCHECKED') {
+      setShowFactCheckModal(true);
+      return;
+    }
+
+    try {
+      setIsFactChecking(true);
+      const result = await factCheckService.checkPost(post.id, currentUserId);
+      setFactCheckResult(result);
+
+      // Update local state with new status
+      if (result && !result.error) {
+        setFactCheckStatus(result.verdict);
+        setFactCheckScore(result.confidence ? result.confidence / 100 : null);
+      }
+
+      setShowFactCheckModal(true);
+
+      if (onPostUpdated) {
+        onPostUpdated();
+      }
+    } catch (error) {
+      console.error('Error fact-checking post:', error);
+      setFactCheckResult({ error: 'Failed to fact-check this post. Please try again.' });
+      setShowFactCheckModal(true);
+    } finally {
+      setIsFactChecking(false);
+    }
+  };
+
+  const handleViewFactCheck = () => {
+    setShowFactCheckModal(true);
+  };
+
   const isOwnPost = currentUserId === author?.id;
 
   // Indent for nested replies (max depth to prevent too much nesting)
@@ -160,7 +224,17 @@ function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, depth
             <span className="text-white/50 text-sm">@{author.username}</span>
             <span className="text-white/50 text-sm">·</span>
             <span className="text-white/50 text-sm">{timeAgo}</span>
-            
+
+            {/* Fact Check Badge */}
+            {factCheckStatus && factCheckStatus !== 'UNCHECKED' && (
+              <FactCheckBadge
+                status={factCheckStatus}
+                score={factCheckScore}
+                size="xs"
+                onClick={handleViewFactCheck}
+              />
+            )}
+
             {/* Small Follow Button on Post */}
             {!isOwnPost && currentUserId && (
               <button
@@ -206,14 +280,18 @@ function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, depth
                 </span>
               )}
             </button>
-            <button 
+            <button
               onClick={handleRepost}
-              className="flex items-center gap-2 cursor-pointer transition-all duration-300 
-                         p-1.5 rounded-[10px] relative bg-transparent border-none 
-                         text-inherit text-[13px] font-semibold
-                         hover:text-green-400 hover:bg-green-400/10">
+              disabled={isReposting || isReposted}
+              className={`flex items-center gap-2 cursor-pointer transition-all duration-300
+                         p-1.5 rounded-[10px] relative bg-transparent border-none
+                         text-[13px] font-semibold
+                         ${isReposted
+                           ? 'text-green-500 cursor-default'
+                           : 'text-white/50 hover:text-green-400 hover:bg-green-400/10'}
+                         disabled:opacity-70`}>
               <span className="text-lg">🔁</span>
-              <span>{post.repostCount || 0}</span>
+              <span>{localRepostCount}</span>
             </button>
             <button 
               onClick={handleLike} 
@@ -234,12 +312,18 @@ function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, depth
                                hover:text-veritas-pink hover:bg-veritas-pink/10">
               <span className="text-lg">🔖</span>
             </button>
-            <button className="flex items-center gap-2 cursor-pointer transition-all duration-300 
-                               p-1.5 rounded-[10px] relative bg-transparent border-none 
+            <button className="flex items-center gap-2 cursor-pointer transition-all duration-300
+                               p-1.5 rounded-[10px] relative bg-transparent border-none
                                text-inherit text-[13px] font-semibold
                                hover:text-veritas-pink hover:bg-veritas-pink/10">
               <span className="text-lg">🔗</span>
             </button>
+            <FactCheckButton
+              onClick={handleFactCheck}
+              isLoading={isFactChecking}
+              isChecked={factCheckStatus && factCheckStatus !== 'UNCHECKED'}
+              size="sm"
+            />
             <button
               onClick={handleOpenReplyModal}
               className="ml-auto px-4 py-1.5 rounded-full font-bold text-xs transition-all duration-300
@@ -281,7 +365,6 @@ function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, depth
           No replies yet
         </div>
       )}
-
       {showReplyModal && (
         <ReplyModal
           post={post}
@@ -293,6 +376,13 @@ function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, depth
           }}
         />
       )}
+      {/* Fact Check Modal */}
+      <FactCheckModal
+        isOpen={showFactCheckModal}
+        onClose={() => setShowFactCheckModal(false)}
+        result={factCheckResult}
+        postContent={content}
+      />
     </div>
   );
 }

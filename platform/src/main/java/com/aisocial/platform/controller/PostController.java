@@ -34,10 +34,21 @@ public class PostController {
     }
 
     /**
-     * Create a new post
+     * Create a new post (with optional pre-publish fact-check)
      */
     @PostMapping
-    public ResponseEntity<Post> createPost(@RequestBody CreatePostRequestDTO request) {
+    public ResponseEntity<?> createPost(@RequestBody CreatePostRequestDTO request) {
+        // If fact-check requested, use the new method that returns DTO with results
+        if (request.shouldFactCheck()) {
+            PostResponseDTO response = postService.createPostWithFactCheck(
+                    request.getUserId(),
+                    request.getContent(),
+                    true
+            );
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
+        }
+
+        // Otherwise, use the simple create method
         Post post = postService.createPost(request.getUserId(), request.getContent());
         return new ResponseEntity<>(post, HttpStatus.CREATED);
     }
@@ -70,24 +81,26 @@ public class PostController {
      * Reply to an existing post
      */
     @PostMapping("/{postId}/reply")
-    public ResponseEntity<Post> replyToPost(
+    public ResponseEntity<PostResponseDTO> replyToPost(
             @PathVariable UUID postId,
             @RequestBody ReplyPostRequestDTO request
     ) {
         Post reply = postService.replyToPost(request.getUserId(), postId, request.getContent());
-        return new ResponseEntity<>(reply, HttpStatus.CREATED);
+        PostResponseDTO dto = postService.convertPostToDTO(reply, request.getUserId());
+        return new ResponseEntity<>(dto, HttpStatus.CREATED);
     }
 
     /**
      * Repost an existing post
      */
     @PostMapping("/{postId}/repost")
-    public ResponseEntity<Post> repost(
+    public ResponseEntity<PostResponseDTO> repost(
             @PathVariable UUID postId,
             @RequestBody RepostRequestDTO request
     ) {
         Post repost = postService.repost(request.getUserId(), postId);
-        return new ResponseEntity<>(repost, HttpStatus.CREATED);
+        PostResponseDTO dto = postService.convertPostToDTO(repost, request.getUserId());
+        return new ResponseEntity<>(dto, HttpStatus.CREATED);
     }
 
     /**

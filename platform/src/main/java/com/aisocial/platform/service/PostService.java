@@ -14,6 +14,8 @@ public interface PostService {
 
     Post createPost(UUID authorId, String content);
 
+    PostResponseDTO createPostWithFactCheck(UUID authorId, String content, boolean factCheck);
+
     Post replyToPost(UUID authorId, UUID parentPostId, String content);
 
     Post repost(UUID authorId, UUID originalPostId);
