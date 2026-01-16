@@ -3,6 +3,8 @@ import { useUser } from '../../context/UserContext';
 import postService from '../../services/postService';
 import ComposeBox from './ComposeBox';
 import Tweet from './Tweet';
+import debateService from '../../services/debateService';
+import DebateCard from '../debates/DebateCard';
 
 function MainFeed() {
   const { currentUser } = useUser();
