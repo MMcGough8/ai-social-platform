@@ -44,11 +44,15 @@ export const UserProvider = ({ children }) => {
     }
   };
 
+  const updateCurrentUser = (updatedUser) => {
+    setCurrentUser(updatedUser);
+  };
+
   return (
-    <UserContext.Provider value={{ currentUser, allUsers, loading, switchUser }}>
+    <UserContext.Provider value={{ currentUser, updateCurrentUser, allUsers, loading, switchUser }}>
       {children}
     </UserContext.Provider>
-  );
+  );  
 };
 
 export const useUser = () => {

@@ -75,13 +75,6 @@ function Sidebar({ onNavigateToProfile, onNavigateToSearch }) {
 
       {/* Primary Actions */}
       <div className="mx-3 space-y-2">
-        <button
-          onClick={onNavigateToSearch}
-          className="w-full px-4 py-3 rounded-xl text-left font-semibold
-                     hover:bg-veritas-pink/15 transition"
-        >
-          🌍 Explore
-        </button>
 
         <button
           onClick={() => setIsDebateModalOpen(true)}
