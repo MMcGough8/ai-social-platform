@@ -182,6 +182,13 @@ function Sidebar({ onNavigateToProfile, onNavigateToSearch }) {
           </div>
         </div>
       )}
+      <CreateDebateModal 
+        isOpen={isDebateModalOpen}
+        onClose={() => setIsDebateModalOpen(false)}
+        onDebateCreated={() => {
+          console.log('Debate created!');
+        }}
+      />
     </div>
   );
 }
