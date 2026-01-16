@@ -10,11 +10,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -28,6 +31,10 @@ public class AIFactCheckService {
     private final ObjectMapper objectMapper;
     private final PostRepository postRepository;
     private final FactCheckRepository factCheckRepository;
+    private final Random random = new Random();
+
+    @Value("${app.fact-check.demo-mode:false}")
+    private boolean demoMode;
 
     public AIFactCheckService(ChatClient.Builder chatClientBuilder,
                               ObjectMapper objectMapper,
@@ -37,6 +44,13 @@ public class AIFactCheckService {
         this.objectMapper = objectMapper;
         this.postRepository = postRepository;
         this.factCheckRepository = factCheckRepository;
+    }
+
+    /**
+     * Check if demo mode is enabled.
+     */
+    public boolean isDemoMode() {
+        return demoMode;
     }
 
     /**
@@ -50,6 +64,12 @@ public class AIFactCheckService {
     public FactCheckResultDTO checkClaim(String claim) {
         if (claim == null || claim.trim().isEmpty()) {
             return FactCheckResultDTO.error("Empty claim provided");
+        }
+
+        // Demo mode - return pre-computed results without calling AI
+        if (demoMode) {
+            log.info("Demo mode enabled - returning pre-computed fact-check result");
+            return generateDemoResult(claim);
         }
 
         String sanitizedClaim = sanitizeInput(claim);
@@ -72,6 +92,83 @@ public class AIFactCheckService {
             log.error("Error calling AI service: {}", e.getMessage(), e);
             return FactCheckResultDTO.error("AI service unavailable: " + e.getMessage());
         }
+    }
+
+    /**
+     * Generate a demo fact-check result based on claim content.
+     * Uses keyword matching to provide somewhat realistic responses.
+     */
+    private FactCheckResultDTO generateDemoResult(String claim) {
+        String lowerClaim = claim.toLowerCase();
+
+        FactCheckResultDTO result = new FactCheckResultDTO();
+
+        // Check for obviously false claims
+        if (lowerClaim.contains("flat earth") ||
+            lowerClaim.contains("earth is flat") ||
+            lowerClaim.contains("moon landing fake") ||
+            lowerClaim.contains("vaccines cause autism")) {
+            result.setVerdict("FALSE");
+            result.setConfidence(95);
+            result.setSummary("This claim contradicts well-established scientific consensus and has been thoroughly debunked by experts.");
+            result.setReasoning(List.of(
+                "Analyzed claim against scientific literature",
+                "Found overwhelming evidence contradicting this claim",
+                "Multiple authoritative sources confirm this is false"
+            ));
+        }
+        // Check for likely true scientific facts
+        else if (lowerClaim.contains("water boils at 100") ||
+                 lowerClaim.contains("earth orbits the sun") ||
+                 lowerClaim.contains("speed of light")) {
+            result.setVerdict("VERIFIED");
+            result.setConfidence(98);
+            result.setSummary("This is a well-established scientific fact supported by extensive evidence and research.");
+            result.setReasoning(List.of(
+                "Claim matches established scientific knowledge",
+                "Verified against multiple authoritative sources",
+                "No credible contradicting evidence found"
+            ));
+        }
+        // Check for opinion-like statements
+        else if (lowerClaim.contains("best") ||
+                 lowerClaim.contains("worst") ||
+                 lowerClaim.contains("should") ||
+                 lowerClaim.contains("i think") ||
+                 lowerClaim.contains("i believe")) {
+            result.setVerdict("UNVERIFIABLE");
+            result.setConfidence(85);
+            result.setSummary("This appears to be a subjective opinion rather than a verifiable factual claim.");
+            result.setReasoning(List.of(
+                "Statement contains subjective language",
+                "Cannot be objectively verified as true or false",
+                "Classified as opinion rather than factual claim"
+            ));
+        }
+        // Default - random result for demo purposes
+        else {
+            String[] verdicts = {"VERIFIED", "LIKELY_TRUE", "DISPUTED", "UNVERIFIABLE"};
+            String verdict = verdicts[random.nextInt(verdicts.length)];
+            int confidence = 60 + random.nextInt(35); // 60-94
+
+            result.setVerdict(verdict);
+            result.setConfidence(confidence);
+            result.setSummary("[DEMO MODE] This is a simulated fact-check result. In production, this would be analyzed by AI.");
+            result.setReasoning(List.of(
+                "Demo mode: Simulated analysis step 1",
+                "Demo mode: Simulated analysis step 2",
+                "Demo mode: Result generated for testing purposes"
+            ));
+        }
+
+        // Add demo source
+        FactCheckResultDTO.Source source = new FactCheckResultDTO.Source();
+        source.setTitle("Demo Mode - Simulated Source");
+        source.setUrl("https://example.com/demo");
+        source.setRelevance("This is a demo result, not a real fact-check");
+        result.setSources(List.of(source));
+
+        return result;
     }
 
     /**

@@ -1,8 +1,10 @@
 package com.aisocial.platform.service;
 
+import com.aisocial.platform.dto.FactCheckResultDTO;
 import com.aisocial.platform.dto.PostResponseDTO;
 import com.aisocial.platform.dto.PostSearchRequestDTO;
 import com.aisocial.platform.dto.UserDTO;
+import com.aisocial.platform.entity.FactCheckStatus;
 import com.aisocial.platform.entity.Post;
 import com.aisocial.platform.entity.User;
 import com.aisocial.platform.repository.FollowRepository;
@@ -10,6 +12,9 @@ import com.aisocial.platform.repository.LikeRepository;
 import com.aisocial.platform.repository.PostRepository;
 import com.aisocial.platform.repository.UserRepository;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
@@ -24,19 +29,27 @@ import java.util.stream.Collectors;
 @Service
 public class PostServiceImpl implements PostService {
 
+    private static final Logger log = LoggerFactory.getLogger(PostServiceImpl.class);
+
     private final PostRepository postRepository;
     private final FollowRepository followRepository;
     private final UserRepository userRepository;
     private final LikeRepository likeRepository;
+    private final AIFactCheckService aiFactCheckService;
+    private final ObjectMapper objectMapper;
 
     public PostServiceImpl(PostRepository postRepository,
-                           FollowRepository followRepository, 
+                           FollowRepository followRepository,
                            UserRepository userRepository,
-                           LikeRepository likeRepository) {
+                           LikeRepository likeRepository,
+                           AIFactCheckService aiFactCheckService,
+                           ObjectMapper objectMapper) {
         this.postRepository = postRepository;
         this.followRepository = followRepository;
         this.userRepository = userRepository;
         this.likeRepository = likeRepository;
+        this.aiFactCheckService = aiFactCheckService;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -50,6 +63,63 @@ public class PostServiceImpl implements PostService {
         post.setCreatedAt(Instant.now());
 
         return postRepository.save(post);
+    }
+
+    @Override
+    public PostResponseDTO createPostWithFactCheck(UUID authorId, String content, boolean factCheck) {
+        User author = userRepository.findById(authorId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        // Create the post
+        Post post = new Post();
+        post.setAuthor(author);
+        post.setContent(content);
+        post.setCreatedAt(Instant.now());
+
+        FactCheckResultDTO factCheckResult = null;
+
+        // Run fact-check if requested
+        if (factCheck) {
+            log.info("Running pre-publish fact-check for post by user {}", authorId);
+            factCheckResult = aiFactCheckService.previewFactCheck(content);
+
+            // Update post with fact-check results
+            if (factCheckResult != null && factCheckResult.getError() == null) {
+                post.setFactCheckStatus(mapVerdictToStatus(factCheckResult.getVerdict()));
+                post.setFactCheckScore(factCheckResult.getConfidence() != null
+                        ? factCheckResult.getConfidence() / 100.0 : null);
+                post.setWasCheckedBefore(true);
+
+                try {
+                    post.setFactCheckData(objectMapper.writeValueAsString(factCheckResult));
+                } catch (Exception e) {
+                    log.warn("Could not serialize fact-check data", e);
+                }
+            }
+        }
+
+        // Save the post
+        Post savedPost = postRepository.save(post);
+
+        // Convert to DTO and include fact-check result
+        PostResponseDTO dto = convertToDTO(savedPost, authorId);
+        dto.setFactCheckResult(factCheckResult);
+
+        return dto;
+    }
+
+    private FactCheckStatus mapVerdictToStatus(String verdict) {
+        if (verdict == null) {
+            return FactCheckStatus.UNCHECKED;
+        }
+        return switch (verdict.toUpperCase()) {
+            case "VERIFIED" -> FactCheckStatus.VERIFIED;
+            case "LIKELY_TRUE" -> FactCheckStatus.LIKELY_TRUE;
+            case "DISPUTED" -> FactCheckStatus.DISPUTED;
+            case "FALSE" -> FactCheckStatus.FALSE;
+            case "UNVERIFIABLE" -> FactCheckStatus.UNVERIFIABLE;
+            default -> FactCheckStatus.UNCHECKED;
+        };
     }
 
     @Override
