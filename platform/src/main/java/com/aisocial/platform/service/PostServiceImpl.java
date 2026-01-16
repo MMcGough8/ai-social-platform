@@ -120,6 +120,18 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    public List<PostResponseDTO> getRepliesByUserId(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        List<Post> replies = postRepository.findByAuthorAndReplyToIsNotNullOrderByCreatedAtDesc(user);
+
+        return replies.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public void likePost(Post post) {
         post.incrementLikeCount();
         postRepository.save(post);

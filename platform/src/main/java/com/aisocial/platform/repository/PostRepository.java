@@ -18,6 +18,8 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
 
     List<Post> findByAuthorOrderByCreatedAtDesc(User author);
 
+    List<Post> findByAuthorAndReplyToIsNotNullOrderByCreatedAtDesc(User author);
+
     long countByAuthor(User author);
 
     List<Post> findByReplyTo(Post replyTo);
