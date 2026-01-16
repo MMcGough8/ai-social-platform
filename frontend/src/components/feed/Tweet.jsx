@@ -5,7 +5,7 @@ import ReplyModal from './ReplyModal';
 import factCheckService from '../../services/factcheckService';
 import { FactCheckBadge, FactCheckButton, FactCheckModal } from '../factcheck';
 
-function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, depth = 0 }) {
+function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, onPostDeleted, canDelete = false, depth = 0 }) {
   const [isLiked, setIsLiked] = useState(post.isLikedByCurrentUser || false);
   const [isLiking, setIsLiking] = useState(false);
   const [localLikeCount, setLocalLikeCount] = useState(post.likeCount || 0);
@@ -13,6 +13,7 @@ function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, depth
   const [isFollowLoading, setIsFollowLoading] = useState(false);
   const [isFollowHovering, setIsFollowHovering] = useState(false);
   const [showReplyModal, setShowReplyModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   
   // Reply state
   const [replies, setReplies] = useState([]);
@@ -203,6 +204,29 @@ function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, depth
     setShowFactCheckModal(true);
   };
 
+  const handleDelete = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (isDeleting) return;
+
+    const confirmed = window.confirm('Delete this post? This cannot be undone.');
+    if (!confirmed) return;
+
+    try {
+      setIsDeleting(true);
+      await postService.deletePost(currentUserId, post.id);
+
+      if (onPostDeleted) {
+        onPostDeleted(post.id);
+      }
+    } catch (error) {
+      console.error('Error deleting post:', error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const isOwnPost = currentUserId === author?.id;
 
   // Indent for nested replies (max depth to prevent too much nesting)
@@ -233,6 +257,22 @@ function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, depth
                 size="xs"
                 onClick={handleViewFactCheck}
               />
+            )}
+
+            {canDelete && isOwnPost && (
+              <button
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="
+                  ml-2 px-3 py-1.5 rounded-full text-xs font-bold
+                  text-red-400 border border-red-500/40
+                  hover:bg-red-500/20 hover:border-red-500
+                  transition-all
+                  disabled:opacity-50 disabled:cursor-not-allowed
+                "
+              >
+                {isDeleting ? 'Deleting…' : 'Delete'}
+              </button>
             )}
 
             {/* Small Follow Button on Post */}

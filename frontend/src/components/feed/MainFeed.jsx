@@ -93,6 +93,12 @@ function MainFeed() {
     );
   };
 
+  const handlePostDeleted = (postId) => {
+    setPosts(prevPosts =>
+      prevPosts.filter(post => post.id !== postId)
+    );
+  };
+
   if (!currentUser) {
     return (
       <div className="bg-white/[0.03] rounded-3xl overflow-hidden backdrop-blur-[10px] border border-white/10 
@@ -169,6 +175,8 @@ function MainFeed() {
               currentUserId={currentUser.id}
               onPostUpdated={handlePostUpdated}
               onAuthorFollowChange={handleAuthorFollowChange}
+              canDelete={activeTab === 'yourPosts'}
+              onPostDeleted={handlePostDeleted}
             />
           ))}
         </div>
