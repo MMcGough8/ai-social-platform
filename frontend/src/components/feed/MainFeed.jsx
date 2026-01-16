@@ -10,6 +10,7 @@ function MainFeed() {
   const { currentUser } = useUser();
   const [activeTab, setActiveTab] = useState('following');
   const [posts, setPosts] = useState([]);
+  const [debates, setDebates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
