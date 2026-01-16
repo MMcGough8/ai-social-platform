@@ -16,7 +16,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/posts")
@@ -100,12 +102,6 @@ public class PostController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{postId}/like")
-    public ResponseEntity<Like> likePost(@PathVariable UUID postId, @RequestParam UUID userId) {
-        Like like = likeService.likePost(userId, postId);
-        return new ResponseEntity<>(like, HttpStatus.CREATED);
-    }
-
     @DeleteMapping("/{postId}/like")
     public ResponseEntity<Void> unlikePost(@PathVariable UUID postId, @RequestParam UUID userId) {
         likeService.unlikePost(userId, postId);
@@ -127,5 +123,20 @@ public class PostController {
     @PostMapping("/search")
     public Page<PostResponseDTO> searchPosts(@RequestBody PostSearchRequestDTO request) {
         return postService.searchPosts(request);
+    }
+
+    @PostMapping("/{postId}/like")
+    public ResponseEntity<Map<String, Object>> toggleLike(
+            @PathVariable UUID postId, 
+            @RequestParam UUID userId) {
+        
+        boolean isNowLiked = likeService.toggleLike(userId, postId);
+        long likeCount = likeService.countLikes(postId);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("liked", isNowLiked);
+        response.put("likeCount", likeCount);
+        
+        return ResponseEntity.ok(response);
     }
 }

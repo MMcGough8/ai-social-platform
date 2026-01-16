@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import postService from '../../services/postService';
 
 function Tweet({ post, currentUserId, onPostUpdated }) {
+  const [isLiked, setIsLiked] = useState(post.isLikedByCurrentUser || false);
   const [isLiking, setIsLiking] = useState(false);
   const [localLikeCount, setLocalLikeCount] = useState(post.likeCount || 0);
 
@@ -37,13 +38,17 @@ function Tweet({ post, currentUserId, onPostUpdated }) {
     
     try {
       setIsLiking(true);
-      await postService.likePost(currentUserId, post.id);
-      setLocalLikeCount(prev => prev + 1);
+      const response = await postService.likePost(currentUserId, post.id);
+      
+      // Use the actual count from API, not increment
+      setIsLiked(response.liked);
+      setLocalLikeCount(response.likeCount);
+      
       if (onPostUpdated) {
         onPostUpdated();
       }
     } catch (error) {
-      console.error('Error liking post:', error);
+      console.error('Error toggling like:', error);
     } finally {
       setIsLiking(false);
     }
@@ -116,12 +121,14 @@ function Tweet({ post, currentUserId, onPostUpdated }) {
           <button 
             onClick={handleLike}
             disabled={isLiking}
-            className="flex items-center gap-2 cursor-pointer transition-all duration-300 
-                       p-1.5 rounded-[10px] relative bg-transparent border-none 
-                       text-inherit text-[13px] font-semibold
-                       hover:text-veritas-pink hover:bg-veritas-pink/10
-                       disabled:opacity-50">
-            <span className="text-lg">❤️</span>
+            className={`flex items-center gap-2 cursor-pointer transition-all duration-300 
+                      p-1.5 rounded-[10px] relative bg-transparent border-none 
+                      text-[13px] font-semibold
+                      ${isLiked 
+                        ? 'text-red-500 hover:text-red-600 hover:bg-red-500/10' 
+                        : 'text-white/50 hover:text-veritas-pink hover:bg-veritas-pink/10'}
+                      disabled:opacity-50`}>
+            <span className="text-lg">{isLiked ? '❤️' : '🤍'}</span>
             <span>{localLikeCount}</span>
           </button>
           <button className="flex items-center gap-2 cursor-pointer transition-all duration-300 

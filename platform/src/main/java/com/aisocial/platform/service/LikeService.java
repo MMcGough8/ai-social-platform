@@ -10,4 +10,6 @@ public interface LikeService {
     void unlikePost(UUID userId, UUID postId);
 
     long countLikes(UUID postId);
+    
+    boolean toggleLike(UUID userId, UUID postId);
 }

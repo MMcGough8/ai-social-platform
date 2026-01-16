@@ -32,7 +32,7 @@ const postService = {
   },
 
   likePost: async (userId, postId) => {
-    const response = await api.post(`posts/${postId}/like`, null, {
+    const response = await api.post(`/posts/${postId}/like`, null, {
       params: { userId }
     });
     return response.data;

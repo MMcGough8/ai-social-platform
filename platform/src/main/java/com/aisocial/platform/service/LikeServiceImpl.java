@@ -63,4 +63,28 @@ public class LikeServiceImpl implements LikeService {
             .orElseThrow(() -> new IllegalArgumentException("Post not found"));
         return likeRepository.countByPost(post);
     }
+
+    @Override
+    @Transactional
+    public boolean toggleLike(UUID userId, UUID postId) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        Post post = postRepository.findById(postId)
+            .orElseThrow(() -> new IllegalArgumentException("Post not found"));
+
+        var existingLike = likeRepository.findByUserAndPost(user, post);
+        
+        if (existingLike.isPresent()) {
+            likeRepository.delete(existingLike.get());
+            post.setLikeCount(Math.max(0, post.getLikeCount() - 1));
+            postRepository.save(post);
+            return false;
+        } else {
+            Like like = new Like(user, post);
+            post.incrementLikeCount();
+            postRepository.save(post);
+            likeRepository.save(like);
+            return true;
+        }
+    }
 }

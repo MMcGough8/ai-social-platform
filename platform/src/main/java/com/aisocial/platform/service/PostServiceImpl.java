@@ -6,6 +6,7 @@ import com.aisocial.platform.dto.UserDTO;
 import com.aisocial.platform.entity.Post;
 import com.aisocial.platform.entity.User;
 import com.aisocial.platform.repository.FollowRepository;
+import com.aisocial.platform.repository.LikeRepository;
 import com.aisocial.platform.repository.PostRepository;
 import com.aisocial.platform.repository.UserRepository;
 
@@ -26,13 +27,16 @@ public class PostServiceImpl implements PostService {
     private final PostRepository postRepository;
     private final FollowRepository followRepository;
     private final UserRepository userRepository;
+    private final LikeRepository likeRepository;
 
     public PostServiceImpl(PostRepository postRepository,
                            FollowRepository followRepository, 
-                           UserRepository userRepository) {
+                           UserRepository userRepository,
+                           LikeRepository likeRepository) {
         this.postRepository = postRepository;
         this.followRepository = followRepository;
         this.userRepository = userRepository;
+        this.likeRepository = likeRepository;
     }
 
     @Override
@@ -115,7 +119,7 @@ public class PostServiceImpl implements PostService {
         List<Post> posts = postRepository.findByAuthorOrderByCreatedAtDesc(user);
 
         return posts.stream()
-                .map(this::convertToDTO)
+                .map(post -> convertToDTO(post, userId))
                 .collect(Collectors.toList());
     }
 
@@ -127,7 +131,7 @@ public class PostServiceImpl implements PostService {
         List<Post> replies = postRepository.findByAuthorAndReplyToIsNotNullOrderByCreatedAtDesc(user);
 
         return replies.stream()
-                .map(this::convertToDTO)
+                .map(post -> convertToDTO(post, userId))
                 .collect(Collectors.toList());
     }
 
@@ -163,7 +167,7 @@ public class PostServiceImpl implements PostService {
         List<Post> posts = postRepository.findFeedPostsByAuthors(followedUsers);
         
         return posts.stream()
-            .map(this::convertToDTO)
+            .map(post -> convertToDTO(post, userId))  // Pass userId here
             .collect(Collectors.toList());
     }
 
@@ -191,10 +195,12 @@ public class PostServiceImpl implements PostService {
                 pageable
         );
 
-        return posts.map(this::convertToDTO);
+        UUID userId = author.getId();
+
+        return posts.map(post -> convertToDTO(post, userId));
     }
 
-    private PostResponseDTO convertToDTO(Post post) {
+    private PostResponseDTO convertToDTO(Post post, UUID currentUserId) {
         PostResponseDTO dto = new PostResponseDTO();
         dto.setId(post.getId());
         dto.setContent(post.getContent());
@@ -218,6 +224,14 @@ public class PostServiceImpl implements PostService {
             repostDto.setContent(post.getRepostOf().getContent());
             repostDto.setAuthor(new UserDTO(post.getRepostOf().getAuthor()));
             dto.setRepostOf(repostDto);
+        }
+        
+        // Check if current user liked this post
+        if (currentUserId != null) {
+            boolean liked = likeRepository.existsByUser_IdAndPost_Id(currentUserId, post.getId());
+            dto.setIsLikedByCurrentUser(liked);
+        } else {
+            dto.setIsLikedByCurrentUser(false);
         }
         
         return dto;
