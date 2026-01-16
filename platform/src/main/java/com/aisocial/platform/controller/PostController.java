@@ -34,10 +34,21 @@ public class PostController {
     }
 
     /**
-     * Create a new post
+     * Create a new post (with optional pre-publish fact-check)
      */
     @PostMapping
-    public ResponseEntity<Post> createPost(@RequestBody CreatePostRequestDTO request) {
+    public ResponseEntity<?> createPost(@RequestBody CreatePostRequestDTO request) {
+        // If fact-check requested, use the new method that returns DTO with results
+        if (request.shouldFactCheck()) {
+            PostResponseDTO response = postService.createPostWithFactCheck(
+                    request.getUserId(),
+                    request.getContent(),
+                    true
+            );
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
+        }
+
+        // Otherwise, use the simple create method
         Post post = postService.createPost(request.getUserId(), request.getContent());
         return new ResponseEntity<>(post, HttpStatus.CREATED);
     }
