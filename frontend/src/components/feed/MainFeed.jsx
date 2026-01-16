@@ -3,11 +3,14 @@ import { useUser } from '../../context/UserContext';
 import postService from '../../services/postService';
 import ComposeBox from './ComposeBox';
 import Tweet from './Tweet';
+import debateService from '../../services/debateService';
+import DebateCard from '../debates/DebateCard';
 
 function MainFeed() {
   const { currentUser } = useUser();
   const [activeTab, setActiveTab] = useState('following');
   const [posts, setPosts] = useState([]);
+  const [debates, setDebates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -18,36 +21,44 @@ function MainFeed() {
   }, [currentUser, activeTab]);
 
   const loadPosts = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      let feed;
-      if (activeTab === 'following') {
-        // Load posts from users you follow
-        feed = await postService.getFeed(currentUser.id);
-      } else if (activeTab === 'yourPosts') {
-        // Load your own posts
-        feed = await postService.searchPosts({
-          authorId: currentUser.id,
-          page: 0,
-          size: 50
-        });
-        feed = feed.content || [];
-      }
-      
+  try {
+    setLoading(true);
+    setError(null);
+    
+    let feed;
+    if (activeTab === 'following') {
+      feed = await postService.getFeed(currentUser.id);
       const sortedFeed = feed.sort((a, b) => 
         new Date(b.createdAt) - new Date(a.createdAt)
       );
-
       setPosts(sortedFeed);
-    } catch (err) {
-      console.error('Error loading posts:', err);
-      setError('Failed to load posts');
-    } finally {
-      setLoading(false);
+    } else if (activeTab === 'yourPosts') {
+      feed = await postService.searchPosts({
+        authorId: currentUser.id,
+        page: 0,
+        size: 50
+      });
+      feed = feed.content || [];
+      const sortedFeed = feed.sort((a, b) => 
+        new Date(b.createdAt) - new Date(a.createdAt)
+      );
+      setPosts(sortedFeed);
+    } else if (activeTab === 'debates') {
+      const activeDebates = await debateService.getActiveDebates();
+      const votingDebates = await debateService.getVotingDebates();
+      const allDebates = [...activeDebates, ...votingDebates];
+      const sortedDebates = allDebates.sort((a, b) => 
+        new Date(b.createdAt) - new Date(a.createdAt)
+      );
+      setDebates(sortedDebates);
     }
-  };
+  } catch (err) {
+    console.error('Error loading posts:', err);
+    setError('Failed to load content');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handlePostCreated = () => {
     loadPosts();
@@ -102,6 +113,7 @@ function MainFeed() {
                      ${activeTab === 'following' 
                        ? 'text-white bg-gradient-to-br from-veritas-pink/20 to-veritas-purple/20' 
                        : 'text-white/50 hover:text-white/80 hover:bg-white/5'}`}
+          
           onClick={() => setActiveTab('following')}
         >
           Following
@@ -115,6 +127,16 @@ function MainFeed() {
           onClick={() => setActiveTab('yourPosts')}
         >
           Your Posts
+        </div>
+        <div 
+          className={`flex-1 p-3.5 text-center font-bold cursor-pointer relative 
+                     text-[15px] rounded-xl transition-all duration-300
+                     ${activeTab === 'debates' 
+                       ? 'text-white bg-gradient-to-br from-veritas-pink/20 to-veritas-purple/20' 
+                       : 'text-white/50 hover:text-white/80 hover:bg-white/5'}`}
+          onClick={() => setActiveTab('debates')}
+        >
+          ⚔️ Debates
         </div>
       </div>
 
@@ -132,15 +154,13 @@ function MainFeed() {
         </div>
       )}
 
-      {!loading && !error && posts.length === 0 && (
+      {!loading && !error && activeTab === 'debates' && debates.length === 0 && (
         <div className="p-20 text-center text-white/50">
-          {activeTab === 'following' 
-            ? 'No posts from people you follow yet. Follow some users to see their posts here!'
-            : "You haven't posted anything yet. Create your first post above!"}
+          No active debates. Create a debate challenge to get started!
         </div>
       )}
 
-      {!loading && !error && posts.length > 0 && (
+      {!loading && !error && activeTab !== 'debates' && posts.length > 0 && (
         <div>
           {posts.map(post => (
             <Tweet 
@@ -153,8 +173,19 @@ function MainFeed() {
           ))}
         </div>
       )}
-    </div>
-  );
-}
+
+      {!loading && !error && activeTab === 'debates' && debates.length > 0 && (
+        <div>
+          {debates.map(debate => (
+            <DebateCard 
+              key={debate.id} 
+              debate={debate}
+              onDebateUpdated={loadPosts}
+            />
+          ))}
+        </div>
+      )}
+  </div>
+)}
 
 export default MainFeed;
