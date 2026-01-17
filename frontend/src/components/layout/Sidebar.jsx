@@ -3,6 +3,7 @@ import { useUser } from '../../context/UserContext';
 import HelpBadge from '../common/HelpBadge';
 import { useState } from 'react';
 import CreateDebateModal from '../debates/CreateDebateModal';
+import { Home, Globe, MessageCircle, Users, Star, User, UserPlus, Sparkles, Swords } from 'lucide-react';
 
 function Sidebar({ onNavigateToProfile, onNavigateToSearch }) {
   const { currentUser, allUsers, loading, switchUser } = useUser();
