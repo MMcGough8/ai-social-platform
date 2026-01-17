@@ -272,7 +272,7 @@ function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, depth
                          text-inherit text-[13px] font-semibold
                          ${replyCount > 0 ? 'hover:text-blue-400 hover:bg-blue-400/10' : 'opacity-50 cursor-default'}`}
             >
-              <span className="text-lg">💬</span>
+              <MessageCircle className="w-5 h-5" />
               <span>{replyCount}</span>
               {replyCount > 0 && (
                 <span className={`text-xs transition-transform duration-200 ${showReplies ? 'rotate-180' : ''}`}>
@@ -290,7 +290,7 @@ function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, depth
                            ? 'text-green-500 cursor-default'
                            : 'text-white/50 hover:text-green-400 hover:bg-green-400/10'}
                          disabled:opacity-70`}>
-              <span className="text-lg">🔁</span>
+              <Repeat2 className="w-5 h-5" />
               <span>{localRepostCount}</span>
             </button>
             <button 
