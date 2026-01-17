@@ -1,5 +1,3 @@
-
-
 import React from 'react';
 
 function HelpBadge({ number, tooltip, bgColor }) {

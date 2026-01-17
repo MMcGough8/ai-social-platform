@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import HelpBadge from '../common/HelpBadge';
 import { useUser } from '../../context/UserContext';
 import EditProfileModal from '../profile/EditProfileModal';
 import CreateDebateModal from '../debates/CreateDebateModal';
 
+
 function Sidebar({ onNavigateToProfile, onNavigateToSearch }) {
-  const { currentUser, loading } = useUser();
+  const { currentUser, allUsers, loading, switchUser } = useUser();
 
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
   const [isDebateModalOpen, setIsDebateModalOpen] = useState(false);
@@ -35,6 +37,28 @@ function Sidebar({ onNavigateToProfile, onNavigateToSearch }) {
                         bg-clip-text text-transparent">
           Chirp
         </div>
+      </div>
+
+      {/* User Selector Dropdown */}
+      <div className="mx-3 mb-4 p-3 bg-gradient-to-br from-veritas-purple/20 to-veritas-pink/20 
+                      border-2 border-veritas-pink/30 rounded-2xl">
+        <label className="block text-xs font-bold text-veritas-coral mb-2 uppercase tracking-wider">
+          Demo Mode - Select User:
+        </label>
+        <select 
+          value={currentUser?.id || ''} 
+          onChange={(e) => switchUser(e.target.value)}
+          className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 
+                     text-white font-semibold cursor-pointer
+                     focus:outline-none focus:border-veritas-pink focus:bg-white/15
+                     transition-all duration-300"
+        >
+          {allUsers.map(user => (
+            <option key={user.id} value={user.id} className="bg-gray-900">
+              {user.displayName} (@{user.username})
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* User Profile Card */}
