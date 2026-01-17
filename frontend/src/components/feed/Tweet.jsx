@@ -310,7 +310,7 @@ function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, depth
                                p-1.5 rounded-[10px] relative bg-transparent border-none 
                                text-inherit text-[13px] font-semibold
                                hover:text-veritas-pink hover:bg-veritas-pink/10">
-              <span className="text-lg">🔖</span>
+              <Bookmark className="w-5 h-5" />
             </button>
             <button className="flex items-center gap-2 cursor-pointer transition-all duration-300
                                p-1.5 rounded-[10px] relative bg-transparent border-none
