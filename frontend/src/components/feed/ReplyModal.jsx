@@ -1,14 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
+import ReactDOM from 'react-dom';
 import postService from '../../services/postService';
 
-function ReplyModal({ post, currentUserId, onClose, onReplyCreated }) {
+function ReplyModal({ post, currentUserId, onClose, onReplyCreated, clickY = 0 }) {
   const [content, setContent] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const textareaRef = useRef(null);
 
   // Auto-focus when modal opens
   useEffect(() => {
-    textareaRef.current?.focus();
+    if (textareaRef.current) {
+      setTimeout(() => {
+        textareaRef.current?.focus({ preventScroll: true });
+      }, 0);
+    }
   }, []);
 
   const handleSubmit = async () => {
@@ -40,12 +45,34 @@ function ReplyModal({ post, currentUserId, onClose, onReplyCreated }) {
     }
   };
 
-  return (
+  const handleBackdropClick = (e) => {
+    // Close modal if clicking the backdrop (not the modal itself)
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
+  // Calculate how much to shift from center (same approach as FactCheckModal)
+  const centerY = window.innerHeight / 2;
+  const offsetY = clickY ? clickY - centerY : 0;
+
+  console.log('ReplyModal - clickY:', clickY, 'centerY:', centerY, 'offsetY:', offsetY);
+
+  return ReactDOM.createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      onClick={handleBackdropClick}
       onKeyDown={handleKeyDown}
     >
-      <div className="w-full max-w-lg mx-4 bg-[#0f0f0f] border border-white/10 rounded-2xl shadow-xl">
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/60"></div>
+
+      {/* Modal */}
+      <div
+        className="relative w-full max-w-lg bg-[#0f0f0f] border border-white/10 rounded-2xl shadow-xl"
+        style={{ transform: `translateY(${offsetY}px)` }}
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
           <span className="text-white font-semibold text-sm">Reply</span>
@@ -108,7 +135,8 @@ function ReplyModal({ post, currentUserId, onClose, onReplyCreated }) {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
