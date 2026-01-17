@@ -15,7 +15,7 @@ function RightSidebar() {
         <div className="text-white/50 text-xl">🔍</div>
         <input 
           type="text" 
-          placeholder="Search posts, people, hashtags..." 
+          placeholder="Search posts, people..." 
           className="bg-transparent border-none outline-none text-white w-full 
                      font-['Plus_Jakarta_Sans'] text-[15px] placeholder:text-white/40"
         />
