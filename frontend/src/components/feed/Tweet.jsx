@@ -316,7 +316,7 @@ function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, depth
                                p-1.5 rounded-[10px] relative bg-transparent border-none
                                text-inherit text-[13px] font-semibold
                                hover:text-veritas-pink hover:bg-veritas-pink/10">
-              <span className="text-lg">🔗</span>
+              <Share2 className="w-5 h-5" />
             </button>
             <FactCheckButton
               onClick={handleFactCheck}
