@@ -372,11 +372,11 @@ function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, onPos
             />
             <button
               onClick={handleOpenReplyModal}
-              className="ml-auto px-4 py-1.5 rounded-full font-bold text-xs transition-all duration-300
+              className="ml-auto px-3 py-1.5 rounded-full font-bold text-xs transition-all duration-300
                         disabled:opacity-50 disabled:cursor-not-allowed
                         bg-gradient-to-br from-veritas-pink to-veritas-pink-dark text-white border border-transparent hover:shadow-[0_4px_12px_rgba(255,107,157,0.3)]"
             >
-              <span className="text-lg">Reply</span>
+              Reply
             </button>
           </div>
         </div>
