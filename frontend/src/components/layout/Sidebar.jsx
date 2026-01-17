@@ -85,25 +85,28 @@ function Sidebar({ onNavigateToProfile, onNavigateToSearch }) {
 
       {/* Navigation */}
       <nav className="mb-5">
-        {navItems.map((item, index) => (
-          <div 
-            key={index} 
-            onClick={item.onClick}
-            className={`flex items-center gap-4 px-5 py-3.5 rounded-2xl mx-3 mb-2 
-                       text-[17px] font-semibold transition-all duration-300 
-                       hover:bg-veritas-pink/15 hover:translate-x-1
-                       ${item.onClick ? 'cursor-pointer' : 'cursor-default'}`}
-          >
-            <div className="w-6 h-6 text-[22px]">{item.icon}</div>
-            <div>{item.label}</div>
-            {item.badge && (
-              <HelpBadge 
-                number={item.badge.number} 
-                tooltip={item.badge.tooltip} 
-              />
-            )}
-          </div>
-        ))}
+       {navItems.map((item, index) => {
+  const IconComponent = item.icon;
+  return (
+    <div 
+      key={index} 
+      onClick={item.onClick}
+      className="flex items-center gap-4 px-5 py-3.5 rounded-2xl mx-3 mb-2 
+                 cursor-pointer text-[17px] font-semibold transition-all duration-300 
+                 hover:bg-veritas-pink/15 hover:translate-x-1"
+    >
+      <IconComponent className="w-6 h-6" />
+      <div>{item.label}</div>
+      {item.badge && (
+        <HelpBadge 
+          number={item.badge.number} 
+          tooltip={item.badge.tooltip} 
+        />
+      )}
+    </div>
+  );
+})}
+
 
         {/* AI Studio */}
         <div className="flex items-center gap-4 px-5 py-3.5 rounded-2xl mx-3 mb-2 mt-5
