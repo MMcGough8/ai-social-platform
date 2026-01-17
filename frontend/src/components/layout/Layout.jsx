@@ -6,9 +6,14 @@ import RightSidebar from './RightSidebar';
 
 function Layout() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [debateFilterRequest, setDebateFilterRequest] = useState(null);
 
   const handlePostCreated = () => {
     setRefreshTrigger(prev => prev + 1);
+  };
+
+  const handleNavigateToDebates = (filter) => {
+    setDebateFilterRequest({ filter, timestamp: Date.now() });
   };
 
   return (
@@ -16,8 +21,8 @@ function Layout() {
                     lg:grid-cols-[280px_1fr_380px]
                     md:grid-cols-[80px_1fr_300px]
                     sm:grid-cols-1">
-      <Sidebar />
-      <MainFeed refreshTrigger={refreshTrigger} />
+      <Sidebar onNavigateToDebates={handleNavigateToDebates} />
+      <MainFeed refreshTrigger={refreshTrigger} debateFilterRequest={debateFilterRequest} />
       <RightSidebar onPostCreated={handlePostCreated} />
     </div>
   );

@@ -1,15 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import HelpBadge from '../common/HelpBadge';
 import { useUser } from '../../context/UserContext';
 import EditProfileModal from '../profile/EditProfileModal';
 import CreateDebateModal from '../debates/CreateDebateModal';
+import debateService from '../../services/debateService';
 
 
-function Sidebar({ onNavigateToProfile, onNavigateToSearch }) {
+function Sidebar({ onNavigateToProfile, onNavigateToSearch, onNavigateToDebates }) {
   const { currentUser, allUsers, loading, switchUser } = useUser();
 
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
   const [isDebateModalOpen, setIsDebateModalOpen] = useState(false);
+  const [pendingChallenges, setPendingChallenges] = useState([]);
+
+  useEffect(() => {
+    if (currentUser) {
+      loadPendingChallenges();
+    }
+  }, [currentUser]);
+
+  const loadPendingChallenges = async () => {
+    try {
+      const challenges = await debateService.getPendingChallenges(currentUser.id);
+      setPendingChallenges(challenges);
+    } catch (err) {
+      console.error('Error loading pending challenges:', err);
+    }
+  };
 
   const handleProfileClick = () => {
     if (currentUser && onNavigateToProfile) {
@@ -100,7 +117,6 @@ function Sidebar({ onNavigateToProfile, onNavigateToSearch }) {
 
       {/* Primary Actions */}
       <div className="mx-3 space-y-2">
-
         <button
           onClick={() => setIsDebateModalOpen(true)}
           className="w-full px-4 py-3 rounded-xl text-left font-semibold
@@ -108,6 +124,21 @@ function Sidebar({ onNavigateToProfile, onNavigateToSearch }) {
                      border border-red-500/30 hover:bg-red-500/30 transition"
         >
           ⚔️ Create Debate
+        </button>
+
+        <button
+          onClick={() => onNavigateToDebates && onNavigateToDebates('invitations')}
+          className="w-full px-4 py-3 rounded-xl text-left font-semibold
+                     transition flex items-center justify-between
+                     bg-gradient-to-br from-purple-500/20 to-pink-500/20
+                     border border-purple-500/30 hover:bg-purple-500/30"
+        >
+          <span>📬 Challenges</span>
+          {pendingChallenges.length > 0 && (
+            <span className="bg-orange-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+              {pendingChallenges.length}
+            </span>
+          )}
         </button>
       </div>
 
