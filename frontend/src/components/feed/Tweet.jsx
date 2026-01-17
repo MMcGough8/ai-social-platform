@@ -273,7 +273,7 @@ function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, onPos
         <div className="text-4xl flex-shrink-0 relative">🎨</div>
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-2 flex-wrap">
-            <span className="font-bold text-[15px]">{author.displayName}</span>
+            <span className="font-bold text-[15px] text-veritas-coral">{author.displayName}</span>
             <span className="text-white/50 text-sm">@{author.username}</span>
             {/* Trust Score Badge */}
             {author.trustScore != null && (

@@ -1,24 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { useUser } from '../../context/UserContext';
 import postService from '../../services/postService';
-import ComposeBox from './ComposeBox';
 import Tweet from './Tweet';
 import debateService from '../../services/debateService';
 import DebateCard from '../debates/DebateCard';
 
-function MainFeed() {
+function MainFeed({ refreshTrigger }) {
   const { currentUser } = useUser();
   const [activeTab, setActiveTab] = useState('following');
   const [posts, setPosts] = useState([]);
   const [debates, setDebates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     if (currentUser) {
       loadPosts();
     }
-  }, [currentUser, activeTab]);
+  }, [currentUser, activeTab, refreshTrigger]);
 
   const loadPosts = async () => {
   try {
@@ -59,10 +59,6 @@ function MainFeed() {
   }
 };
 
-  const handlePostCreated = () => {
-    loadPosts();
-  };
-
   // Update local post state without reloading from server
   const handlePostUpdated = (updatedPost) => {
     if (updatedPost) {
@@ -100,7 +96,8 @@ function MainFeed() {
 
   if (!currentUser) {
     return (
-      <div className="bg-white/[0.03] rounded-3xl overflow-hidden backdrop-blur-[10px] border border-white/10 
+      <div className="bg-gradient-to-br from-veritas-purple/20 to-veritas-pink/20
+                      rounded-2xl overflow-hidden backdrop-blur-[10px] border-2 border-veritas-pink/30
                       flex items-center justify-center p-20">
         <div className="text-white/50">Loading user...</div>
       </div>
@@ -108,10 +105,11 @@ function MainFeed() {
   }
 
   return (
-    <div className="bg-white/[0.03] rounded-3xl overflow-hidden backdrop-blur-[10px] border border-white/10">
+    <div className="bg-gradient-to-br from-veritas-purple/20 to-veritas-pink/20
+                    rounded-2xl overflow-hidden backdrop-blur-[10px] border-2 border-veritas-pink/30">
       {/* Tabs */}
-      <div className="flex sticky top-0 bg-[rgba(15,5,25,0.95)] backdrop-blur-[20px] z-10 
-                      p-2 border-b border-white/10">
+      <div className="flex sticky top-0 bg-[rgba(15,5,25,0.95)] backdrop-blur-[20px] z-10
+                      p-2 border-b border-veritas-pink/20">
         <div 
           className={`flex-1 p-3.5 text-center font-bold cursor-pointer relative 
                      text-[15px] rounded-xl transition-all duration-300
@@ -133,11 +131,11 @@ function MainFeed() {
         >
           Your Posts
         </div>
-        <div 
-          className={`flex-1 p-3.5 text-center font-bold cursor-pointer relative 
+        <div
+          className={`flex-1 p-3.5 text-center font-bold cursor-pointer relative
                      text-[15px] rounded-xl transition-all duration-300
-                     ${activeTab === 'debates' 
-                       ? 'text-white bg-gradient-to-br from-veritas-pink/20 to-veritas-purple/20' 
+                     ${activeTab === 'debates'
+                       ? 'text-white bg-gradient-to-br from-veritas-pink/20 to-veritas-purple/20'
                        : 'text-white/50 hover:text-white/80 hover:bg-white/5'}`}
           onClick={() => setActiveTab('debates')}
         >
@@ -145,7 +143,24 @@ function MainFeed() {
         </div>
       </div>
 
-      <ComposeBox onPostCreated={handlePostCreated} />
+      {/* Search Bar */}
+      <div className="px-4 py-3 border-b border-veritas-pink/20">
+        <div className="bg-white/8 backdrop-blur-[10px] border border-veritas-pink/20 rounded-2xl
+                        px-[18px] py-3.5 flex items-center gap-3
+                        transition-all duration-300
+                        focus-within:bg-white/12 focus-within:border-veritas-pink
+                        focus-within:shadow-[0_0_20px_rgba(255,107,157,0.2)]">
+          <div className="text-white/50 text-xl">🔍</div>
+          <input
+            type="text"
+            placeholder="Search posts, people, hashtags..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="bg-transparent border-none outline-none text-white w-full
+                       font-['Plus_Jakarta_Sans'] text-[15px] placeholder:text-white/40"
+          />
+        </div>
+      </div>
 
       {loading && (
         <div className="p-20 text-center text-white/50">

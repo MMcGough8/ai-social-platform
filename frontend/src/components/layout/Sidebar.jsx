@@ -65,8 +65,9 @@ function Sidebar({ onNavigateToProfile, onNavigateToSearch }) {
       <div
         onClick={handleProfileClick}
         className="mx-3 mb-6 p-4 rounded-2xl cursor-pointer
-                   bg-white/5 border border-white/10
-                   hover:bg-white/10 transition-all"
+                   bg-gradient-to-br from-veritas-purple/20 to-veritas-pink/20
+                   border-2 border-veritas-pink/30
+                   hover:border-veritas-pink/50 transition-all"
       >
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-veritas-blue to-veritas-blue-dark 
@@ -75,7 +76,7 @@ function Sidebar({ onNavigateToProfile, onNavigateToSearch }) {
           </div>
 
           <div className="flex-1">
-            <div className="font-bold text-sm">{currentUser.displayName}</div>
+            <div className="font-bold text-sm text-veritas-coral">{currentUser.displayName}</div>
             <div className="text-xs text-white/50">@{currentUser.username}</div>
           </div>
 
