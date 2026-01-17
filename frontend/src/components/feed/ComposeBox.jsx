@@ -4,6 +4,7 @@ import { useUser } from '../../context/UserContext';
 import postService from '../../services/postService';
 import factCheckService from '../../services/factcheckService';
 import PostAssistantPanel from './PostAssistantPanel';
+import PostStyler, { getStyleClasses } from './PostStyler';
 
 // #145 - FactCheckLoading Component
 function FactCheckLoading() {
@@ -106,6 +107,8 @@ function ComposeBox({ onPostCreated }) {
   const [isFactChecking, setIsFactChecking] = useState(false);
   const [factCheckResult, setFactCheckResult] = useState(null);
   const [showPostAssistant, setShowPostAssistant] = useState(false);
+  const [showStyler, setShowStyler] = useState(false); // #70
+  const [postStyle, setPostStyle] = useState({ font: 'default', textColor: 'default', background: 'none', size: 'default' }); // #68
   const maxChars = 280;
 
   const getCharCountClass = () => {
@@ -130,10 +133,12 @@ function ComposeBox({ onPostCreated }) {
         return; // Show preview, let user decide
       }
 
-      // No fact-check - just create post
+      // No fact-check - just create post (with optional style)
       setIsPosting(true);
-      await postService.createPost(currentUser.id, postText, false);
+      const hasCustomStyle = postStyle.font !== 'default' || postStyle.textColor !== 'default' || postStyle.background !== 'none' || postStyle.size !== 'default';
+      await postService.createPost(currentUser.id, postText, false, hasCustomStyle ? postStyle : null);
       setPostText('');
+      setPostStyle({ font: 'default', textColor: 'default', background: 'none', size: 'default' }); // Reset style
       if (onPostCreated) {
         onPostCreated();
       }
@@ -150,9 +155,11 @@ function ComposeBox({ onPostCreated }) {
   const handlePostAnyway = async () => {
     try {
       setIsPosting(true);
-      // Create post with fact-check data already included
-      await postService.createPost(currentUser.id, postText, true);
+      // Create post with fact-check data already included (and optional style)
+      const hasCustomStyle = postStyle.font !== 'default' || postStyle.textColor !== 'default' || postStyle.background !== 'none' || postStyle.size !== 'default';
+      await postService.createPost(currentUser.id, postText, true, hasCustomStyle ? postStyle : null);
       setPostText('');
+      setPostStyle({ font: 'default', textColor: 'default', background: 'none', size: 'default' }); // Reset style
       setFactCheckResult(null);
       if (onPostCreated) {
         onPostCreated();
@@ -189,11 +196,6 @@ function ComposeBox({ onPostCreated }) {
         🎨
       </div>
       <div className="flex-1">
-        <div className="bg-veritas-pink/10 border-l-4 border-veritas-pink px-3 py-2 mb-4
-                        text-xs font-bold text-veritas-coral uppercase tracking-wider">
-          🎯 CREATE A POST (Feature #3)
-        </div>
-
         <div className="mb-4 p-4 bg-gradient-to-br from-veritas-purple/10 to-veritas-pink/10 
                         border-2 border-veritas-pink/30 rounded-2xl">
           <div className="flex items-center gap-2.5 mb-3">
@@ -229,6 +231,19 @@ function ComposeBox({ onPostCreated }) {
                 {factCheckEnabled ? 'ON' : 'OFF'}
               </span>
             </button>
+            {/* #70 - Style Button */}
+            <button
+              onClick={() => setShowStyler(!showStyler)}
+              className={`px-3.5 py-2 rounded-[10px] font-semibold cursor-pointer text-[13px]
+                         flex items-center gap-1.5 border-2 transition-all duration-300
+                         hover:-translate-y-0.5
+                         ${showStyler
+                           ? 'bg-pink-600/50 border-pink-400 text-pink-200 shadow-[0_0_12px_rgba(236,72,153,0.3)]'
+                           : 'bg-pink-600/30 border-pink-600/50 text-pink-300'}`}
+            >
+              <span>🎨</span>
+              <span>Style</span>
+            </button>
           </div>
         </div>
 
@@ -239,6 +254,26 @@ function ComposeBox({ onPostCreated }) {
             onSelectSuggestion={handleSelectSuggestion}
             onClose={() => setShowPostAssistant(false)}
           />
+        )}
+
+        {/* #70 - Post Styler Panel */}
+        {showStyler && (
+          <PostStyler
+            style={postStyle}
+            onStyleChange={setPostStyle}
+            onClose={() => setShowStyler(false)}
+          />
+        )}
+
+        {/* #74 - Live Preview */}
+        {postText.length > 0 && (postStyle.font !== 'default' || postStyle.textColor !== 'default' || postStyle.background !== 'none' || postStyle.size !== 'default') && (
+          <div className="mb-4 p-4 rounded-xl border border-white/20"
+               style={getStyleClasses(postStyle).backgroundStyle}>
+            <div className="text-white/50 text-xs font-semibold mb-2 uppercase tracking-wider">Preview</div>
+            <p className={`${getStyleClasses(postStyle).sizeClass || 'text-lg'} ${getStyleClasses(postStyle).fontClass} ${getStyleClasses(postStyle).colorClass}`}>
+              {postText}
+            </p>
+          </div>
         )}
 
         <textarea
