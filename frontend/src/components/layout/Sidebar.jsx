@@ -22,13 +22,13 @@ function Sidebar({ onNavigateToProfile, onNavigateToSearch }) {
   };
 
   const navItems = [
-    { icon: '🏠', label: 'Home', badge: null, onClick: null },
-    { icon: '🌍', label: 'Explore', badge: null, onClick: handleExploreClick },
-    { icon: '💬', label: 'Messages', badge: null, onClick: null },
-    { icon: '👥', label: 'Groups', badge: null, onClick: null },
-    { icon: '⭐', label: 'Bookmarks', badge: null, onClick: null },
-    { icon: '👤', label: 'Profile', badge: null, onClick: handleProfileClick },
-    { icon: '🤝', label: 'Friends', badge: null, onClick: null },
+    { icon: Home, label: 'Home', badge: null, onClick: null },
+  { icon: Globe, label: 'Explore', badge: null, onClick: handleExploreClick },
+  { icon: MessageCircle, label: 'Messages', badge: null, onClick: null },
+  { icon: Users, label: 'Groups', badge: null, onClick: null },
+  { icon: Star, label: 'Bookmarks', badge: null, onClick: null },
+  { icon: User, label: 'Profile', badge: null, onClick: handleProfileClick },
+  { icon: UserPlus, label: 'Friends', badge: null, onClick: null },
   ];
 
   if (loading) {
