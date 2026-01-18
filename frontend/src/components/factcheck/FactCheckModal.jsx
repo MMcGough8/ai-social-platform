@@ -11,8 +11,6 @@ function FactCheckModal({ isOpen, onClose, result, postContent, clickY }) {
   const centerY = window.innerHeight / 2;
   const offsetY = clickY ? clickY - centerY : 0;
 
-  console.log('Modal - clickY:', clickY, 'centerY:', centerY, 'offsetY:', offsetY);
-
   const hasError = result?.error;
 
   return ReactDOM.createPortal (

@@ -172,13 +172,6 @@ function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, onPos
     // Prevent any default behaviors and stop propagation
     e.preventDefault();
     e.stopPropagation();
-    
-    // Capture the Y coordinate of the click relative to the viewport
-    const modalClickY = e.clientY;
-    
-    console.log('Reply button clicked at Y:', modalClickY);
-    
-    setClickY(modalClickY);
     setShowReplyModal(true);
   };
 
@@ -188,8 +181,6 @@ function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, onPos
 
   // Fact-check handlers
   const handleFactCheck = async (e) => {
-    console.log('Click Y:', e.clientY);
-    console.log('Window height:', window.innerHeight);
     setClickY(e.clientY);
     // If already checked, just show the modal
     if (factCheckStatus && factCheckStatus !== 'UNCHECKED') {
@@ -223,7 +214,6 @@ function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, onPos
   };
 
   const handleViewFactCheck = (e) => {
-    console.log('Badge click Y:', e.clientY);
     setClickY(e.clientY);
     setShowFactCheckModal(true);
   };
@@ -476,7 +466,6 @@ function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, onPos
             handleCloseReplyModal();
             if (onPostUpdated) onPostUpdated();
           }}
-          clickY={clickY}
         />
       )}
       {/* Fact Check Modal */}

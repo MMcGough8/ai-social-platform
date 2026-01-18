@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import postService from '../../services/postService';
 
-function ReplyModal({ post, currentUserId, onClose, onReplyCreated, clickY = 0 }) {
+function ReplyModal({ post, currentUserId, onClose, onReplyCreated}) {
   const [content, setContent] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const textareaRef = useRef(null);
