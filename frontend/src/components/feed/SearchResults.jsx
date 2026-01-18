@@ -43,7 +43,7 @@ function SearchResults({
   }
 
   return (
-    <div className="space-y-6">
+    <div>
       {/* User Results Section */}
       {showUsers && hasUserResults && (
         <div>
