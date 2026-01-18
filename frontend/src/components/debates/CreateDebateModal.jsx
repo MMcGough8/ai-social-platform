@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useUser } from '../../context/UserContext';
 import debateService from '../../services/debateService';
+import { Swords, X } from 'lucide-react';
 
 function CreateDebateModal({ isOpen, onClose, onDebateCreated, prefilledDefender, prefilledTopic }) {
   const { currentUser, allUsers } = useUser();
@@ -67,7 +68,7 @@ function CreateDebateModal({ isOpen, onClose, onDebateCreated, prefilledDefender
                       rounded-3xl max-w-2xl w-full p-8 shadow-2xl">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold flex items-center gap-3">
-            <span className="text-3xl">⚔️</span>
+            <Swords className="w-7 h-7" />
             <span>
               {isDefenderLocked
                 ? `Challenge @${prefilledDefender.username}`
@@ -76,9 +77,9 @@ function CreateDebateModal({ isOpen, onClose, onDebateCreated, prefilledDefender
           </h2>
           <button
             onClick={onClose}
-            className="text-white/50 hover:text-white text-3xl leading-none"
+            className="text-white/50 hover:text-white transition-colors"
           >
-            ×
+            <X className="w-6 h-6" />
           </button>
         </div>
 
@@ -159,9 +160,17 @@ function CreateDebateModal({ isOpen, onClose, onDebateCreated, prefilledDefender
               disabled={isCreating || !topic.trim() || !defenderId}
               className="flex-1 px-6 py-3 bg-gradient-to-r from-[#c9a35e] to-[#a68847] 
                          hover:shadow-lg rounded-xl font-bold transition-all duration-300
-                         disabled:opacity-50 disabled:cursor-not-allowed"
+                         disabled:opacity-50 disabled:cursor-not-allowed
+                         flex items-center justify-center gap-2"
             >
-              {isCreating ? 'Creating...' : '⚔️ Challenge'}
+              {isCreating ? (
+                'Creating...'
+              ) : (
+                <>
+                  <Swords className="w-4 h-4" />
+                  Challenge
+                </>
+              )}
             </button>
           </div>
         </form>
