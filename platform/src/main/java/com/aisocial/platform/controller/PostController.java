@@ -154,9 +154,31 @@ public class PostController {
         return ResponseEntity.ok(replyDTOs);
     }
 
+    /**
+     * Search posts with flexible filters
+     * 
+     * Example requests:
+     * - POST /posts/search with body: {"query": "hello", "viewerId": "user-uuid"}
+     * - POST /posts/search with body: {"authorId": "author-uuid", "viewerId": "viewer-uuid"}
+     * - POST /posts/search with body: {"query": "climate", "start": "2024-01-01T00:00:00Z", "viewerId": "user-uuid"}
+     */
     @PostMapping("/search")
-    public Page<PostResponseDTO> searchPosts(@RequestBody PostSearchRequestDTO request) {
-        return postService.searchPosts(request);
+    public ResponseEntity<Page<PostResponseDTO>> searchPosts(
+            @RequestBody PostSearchRequestDTO request,
+            @RequestHeader(value = "X-User-Id", required = false) UUID currentUserId) {
+        
+        // If viewerId not provided in body, use header
+        if (request.getViewerId() == null && currentUserId != null) {
+            request.setViewerId(currentUserId);
+        }
+        
+        // Validate and limit page size
+        if (request.getSize() > 100) {
+            request.setSize(100);
+        }
+        
+        Page<PostResponseDTO> results = postService.searchPosts(request);
+        return ResponseEntity.ok(results);
     }
 
     @PostMapping("/{postId}/like")

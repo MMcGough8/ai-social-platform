@@ -33,6 +33,29 @@ const userService = {
   updateUser: async (userId, payload) => {
     const response = await api.put(`api/users/${userId}`, payload);
     return response.data;
+  },
+
+  searchUsers: async ({ query, minTrustScore, maxTrustScore, page = 0, size = 20 }) => {
+    const params = new URLSearchParams();
+    
+    // Send query to both username and displayName to search across both fields
+    // Backend should use OR logic between these
+    if (query) {
+      params.append('username', query);
+      params.append('displayName', query);
+    }
+    
+    if (minTrustScore !== null && minTrustScore !== undefined) {
+      params.append('minTrustScore', minTrustScore);
+    }
+    if (maxTrustScore !== null && maxTrustScore !== undefined) {
+      params.append('maxTrustScore', maxTrustScore);
+    }
+    params.append('page', page);
+    params.append('size', size);
+
+    const response = await api.get(`api/users/search?${params.toString()}`);
+    return response.data;
   }
 };
 

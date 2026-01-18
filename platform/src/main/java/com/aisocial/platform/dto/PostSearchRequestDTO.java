@@ -9,6 +9,7 @@ public class PostSearchRequestDTO {
 
     private String query;
     private UUID authorId;
+    private UUID viewerId;  // Who is viewing the search results (for like/follow status)
 
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private Instant start;
@@ -29,6 +30,9 @@ public class PostSearchRequestDTO {
 
     public UUID getAuthorId() { return authorId; }
     public void setAuthorId(UUID authorId) { this.authorId = authorId; }
+
+    public UUID getViewerId() { return viewerId; }
+    public void setViewerId(UUID viewerId) { this.viewerId = viewerId; }
 
     public Instant getStart() { return start; }
     public void setStart(Instant start) { this.start = start; }

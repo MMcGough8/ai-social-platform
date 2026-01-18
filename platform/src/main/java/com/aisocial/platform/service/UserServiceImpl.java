@@ -187,18 +187,28 @@ public class UserServiceImpl implements UserService {
         Specification<User> spec = (root, query, cb) -> {
             var predicates = cb.conjunction();
 
-            if (request.getUsername() != null && !request.getUsername().isEmpty()) {
-                String escaped = escapeLikePattern(request.getUsername().toLowerCase());
-                predicates = cb.and(predicates,
-                        cb.like(cb.lower(root.get("username")), "%" + escaped + "%"));
+            // ✅ FIXED: Use OR for username/displayName search
+            if ((request.getUsername() != null && !request.getUsername().isEmpty()) ||
+                (request.getDisplayName() != null && !request.getDisplayName().isEmpty())) {
+                
+                var orPredicates = cb.disjunction(); // OR condition
+                
+                if (request.getUsername() != null && !request.getUsername().isEmpty()) {
+                    String escaped = escapeLikePattern(request.getUsername().toLowerCase());
+                    orPredicates = cb.or(orPredicates,
+                            cb.like(cb.lower(root.get("username")), "%" + escaped + "%"));
+                }
+                
+                if (request.getDisplayName() != null && !request.getDisplayName().isEmpty()) {
+                    String escaped = escapeLikePattern(request.getDisplayName().toLowerCase());
+                    orPredicates = cb.or(orPredicates,
+                            cb.like(cb.lower(root.get("displayName")), "%" + escaped + "%"));
+                }
+                
+                predicates = cb.and(predicates, orPredicates);
             }
 
-            if (request.getDisplayName() != null && !request.getDisplayName().isEmpty()) {
-                String escaped = escapeLikePattern(request.getDisplayName().toLowerCase());
-                predicates = cb.and(predicates,
-                        cb.like(cb.lower(root.get("displayName")), "%" + escaped + "%"));
-            }
-
+            // Trust score filters remain as AND
             if (request.getMinTrustScore() != null) {
                 predicates = cb.and(predicates,
                         cb.ge(root.get("trustScore"), request.getMinTrustScore()));

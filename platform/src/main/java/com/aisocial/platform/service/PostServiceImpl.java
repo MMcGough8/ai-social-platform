@@ -271,7 +271,6 @@ public class PostServiceImpl implements PostService {
     
     @Override
     public Page<PostResponseDTO> searchPosts(PostSearchRequestDTO request) {
-
         User author = null;
         if (request.getAuthorId() != null) {
             author = userRepository.findById(request.getAuthorId())
@@ -280,17 +279,34 @@ public class PostServiceImpl implements PostService {
 
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize());
 
+        // Escape LIKE wildcards in query to prevent pattern injection
+        String escapedQuery = request.getQuery() != null 
+            ? escapeLikePattern(request.getQuery()) 
+            : null;
+
         Page<Post> posts = postRepository.searchPosts(
-                request.getQuery(),
+                escapedQuery,
                 author,
                 request.getStart(),
                 request.getEnd(),
                 pageable
         );
 
-        UUID userId = author.getId();
+        // Use the viewerId from the request, NOT the author's ID
+        // The viewerId is who is VIEWING the search results
+        UUID viewerId = request.getViewerId(); // You'll need to add this to PostSearchRequestDTO
 
-        return posts.map(post -> convertToDTO(post, userId));
+        return posts.map(post -> convertToDTO(post, viewerId));
+    }
+
+    /**
+     * Escapes LIKE pattern wildcards in user input to prevent pattern injection.
+     */
+    private String escapeLikePattern(String input) {
+        return input
+                .replace("\\", "\\\\")  // escape backslash first
+                .replace("%", "\\%")     // escape percent wildcard
+                .replace("_", "\\_");    // escape underscore wildcard
     }
 
     private PostResponseDTO convertToDTO(Post post, UUID currentUserId) {
