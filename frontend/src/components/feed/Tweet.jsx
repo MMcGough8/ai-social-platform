@@ -316,31 +316,33 @@ function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, onPos
               )}
             </div>
 
-            {/* Right side: Follow button (fixed position) */}
-            {!isOwnPost && currentUserId && (
-              <button
-                onClick={handleFollowToggle}
-                onMouseEnter={() => setIsFollowHovering(true)}
-                onMouseLeave={() => setIsFollowHovering(false)}
-                disabled={isFollowLoading}
-                className={`
-                  flex-shrink-0 px-4 py-1.5 rounded-full font-bold text-xs transition-all duration-300
-                  disabled:opacity-50 disabled:cursor-not-allowed
-                  ${isFollowing 
-                    ? 'bg-white/10 border border-white/20 text-white hover:bg-red-500/20 hover:border-red-500 hover:text-red-400' 
-                    : 'bg-gradient-to-br from-veritas-pink to-veritas-pink-dark text-white border border-transparent hover:shadow-[0_4px_12px_rgba(255,107,157,0.3)]'
-                  }
-                `}
-              >
-                {isFollowLoading 
-                  ? '...' 
-                  : isFollowing && isFollowHovering 
-                    ? 'Unfollow' 
-                    : isFollowing 
-                      ? 'Following' 
-                      : 'Follow'}
-              </button>
-            )}
+            {/* Right side: Follow button - fixed width for alignment */}
+            <div className="flex-shrink-0 w-[100px]">
+              {!isOwnPost && currentUserId && (
+                <button
+                  onClick={handleFollowToggle}
+                  onMouseEnter={() => setIsFollowHovering(true)}
+                  onMouseLeave={() => setIsFollowHovering(false)}
+                  disabled={isFollowLoading}
+                  className={`
+                    w-full px-4 py-1.5 rounded-full font-bold text-xs transition-all duration-300
+                    disabled:opacity-50 disabled:cursor-not-allowed
+                    ${isFollowing 
+                      ? 'bg-white/10 border border-white/20 text-white hover:bg-red-500/20 hover:border-red-500 hover:text-red-400' 
+                      : 'bg-gradient-to-br from-veritas-pink to-veritas-pink-dark text-white border border-transparent hover:shadow-[0_4px_12px_rgba(255,107,157,0.3)]'
+                    }
+                  `}
+                >
+                  {isFollowLoading 
+                    ? '...' 
+                    : isFollowing && isFollowHovering 
+                      ? 'Unfollow' 
+                      : isFollowing 
+                        ? 'Following' 
+                        : 'Follow'}
+                </button>
+              )}
+            </div>
           </div>
           
           {/* #75 - Apply post styles */}
@@ -351,62 +353,71 @@ function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, onPos
           >
             {content}
           </div>
-          <div className="flex gap-6 text-white/50">
-            <button 
-              onClick={handleToggleReplies}
-              className={`flex items-center gap-2 cursor-pointer transition-all duration-300 
-                         p-1.5 rounded-[10px] relative bg-transparent border-none 
-                         text-inherit text-[13px] font-semibold
-                         ${replyCount > 0 ? 'hover:text-blue-400 hover:bg-blue-400/10' : 'opacity-50 cursor-default'}`}
-            >
-              <MessageCircle className="w-5 h-5" />
-              <span>{replyCount}</span>
-              {replyCount > 0 && (
-                <span className={`text-xs transition-transform duration-200 ${showReplies ? 'rotate-180' : ''}`}>
-                  ▼
-                </span>
-              )}
-            </button>
-            <button
-              onClick={handleRepost}
-              disabled={isReposting || isReposted}
-              className={`flex items-center gap-2 cursor-pointer transition-all duration-300
-                         p-1.5 rounded-[10px] relative bg-transparent border-none
-                         text-[13px] font-semibold
-                         ${isReposted
-                           ? 'text-green-500 cursor-default'
-                           : 'text-white/50 hover:text-green-400 hover:bg-green-400/10'}
-                         disabled:opacity-70`}>
-              <Repeat2 className="w-5 h-5" />
-              <span>{localRepostCount}</span>
-            </button>
-            <button 
-              onClick={handleLike} 
-              disabled={isLiking}
-              className={`flex items-center gap-2 cursor-pointer transition-all duration-300 
-                         p-1.5 rounded-[10px] relative bg-transparent border-none 
-                         text-[13px] font-semibold
-                         ${isLiked 
-                          ? 'text-red-500 hover:text-red-600 hover:bg-red-500/10' 
-                          : 'text-white/50 hover:text-veritas-pink hover:bg-veritas-pink/10'}
-                        disabled:opacity-50`}>
-              <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
-              <span>{localLikeCount}</span>
-            </button>
-            <FactCheckButton
-              onClick={handleFactCheck}
-              isLoading={isFactChecking}
-              isChecked={factCheckStatus && factCheckStatus !== 'UNCHECKED'}
-              size="sm"
-            />
-            <button
-              onClick={handleOpenReplyModal}
-              className="flex-shrink-0 px-3 py-1.5 rounded-full font-bold text-xs transition-all duration-300
-                        disabled:opacity-50 disabled:cursor-not-allowed
-                        bg-gradient-to-br from-veritas-pink to-veritas-pink-dark text-white border border-transparent hover:shadow-[0_4px_12px_rgba(255,107,157,0.3)]"
-            >
-              Reply
-            </button>
+          
+          {/* Action buttons row - ALIGNED WITH FOLLOW BUTTON */}
+          <div className="flex items-center justify-between">
+            {/* Left side: interaction buttons */}
+            <div className="flex gap-6 text-white/50">
+              <button 
+                onClick={handleToggleReplies}
+                className={`flex items-center gap-2 cursor-pointer transition-all duration-300 
+                           p-1.5 rounded-[10px] relative bg-transparent border-none 
+                           text-inherit text-[13px] font-semibold
+                           ${replyCount > 0 ? 'hover:text-blue-400 hover:bg-blue-400/10' : 'opacity-50 cursor-default'}`}
+              >
+                <MessageCircle className="w-5 h-5" />
+                <span>{replyCount}</span>
+                {replyCount > 0 && (
+                  <span className={`text-xs transition-transform duration-200 ${showReplies ? 'rotate-180' : ''}`}>
+                    ▼
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={handleRepost}
+                disabled={isReposting || isReposted}
+                className={`flex items-center gap-2 cursor-pointer transition-all duration-300
+                           p-1.5 rounded-[10px] relative bg-transparent border-none
+                           text-[13px] font-semibold
+                           ${isReposted
+                             ? 'text-green-500 cursor-default'
+                             : 'text-white/50 hover:text-green-400 hover:bg-green-400/10'}
+                           disabled:opacity-70`}>
+                <Repeat2 className="w-5 h-5" />
+                <span>{localRepostCount}</span>
+              </button>
+              <button 
+                onClick={handleLike} 
+                disabled={isLiking}
+                className={`flex items-center gap-2 cursor-pointer transition-all duration-300 
+                           p-1.5 rounded-[10px] relative bg-transparent border-none 
+                           text-[13px] font-semibold
+                           ${isLiked 
+                            ? 'text-red-500 hover:text-red-600 hover:bg-red-500/10' 
+                            : 'text-white/50 hover:text-veritas-pink hover:bg-veritas-pink/10'}
+                          disabled:opacity-50`}>
+                <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
+                <span>{localLikeCount}</span>
+              </button>
+              <FactCheckButton
+                onClick={handleFactCheck}
+                isLoading={isFactChecking}
+                isChecked={factCheckStatus && factCheckStatus !== 'UNCHECKED'}
+                size="sm"
+              />
+            </div>
+
+            {/* Right side: Reply button - aligned with Follow button above */}
+            <div className="flex-shrink-0 w-[100px]">
+              <button
+                onClick={handleOpenReplyModal}
+                className="w-full px-3 py-1.5 rounded-full font-bold text-xs transition-all duration-300
+                          disabled:opacity-50 disabled:cursor-not-allowed
+                          bg-gradient-to-br from-veritas-pink to-veritas-pink-dark text-white border border-transparent hover:shadow-[0_4px_12px_rgba(255,107,157,0.3)]"
+              >
+                Reply
+              </button>
+            </div>
           </div>
         </div>
       </div>
