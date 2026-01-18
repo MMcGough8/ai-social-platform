@@ -190,8 +190,15 @@ function MainFeed({ debateFilterRequest }) {
         if (debateFilter === 'invitations') {
           // Load pending challenges where current user is the defender
           debatesToShow = await debateService.getPendingChallenges(currentUser.id);
+        } else if (debateFilter === 'active') {
+          // Load only ACTIVE debates (in progress)
+          debatesToShow = await debateService.getActiveDebates();
+        } else if (debateFilter === 'completed') {
+          // Load completed debates for current user
+          const userDebates = await debateService.getDebatesByUser(currentUser.id);
+          debatesToShow = userDebates.filter(d => d.status === 'COMPLETED');
         } else {
-          // Load all active and voting debates
+          // 'all' - Load all active and voting debates
           const activeDebates = await debateService.getActiveDebates();
           const votingDebates = await debateService.getVotingDebates();
           debatesToShow = [...activeDebates, ...votingDebates];
@@ -386,33 +393,52 @@ function MainFeed({ debateFilterRequest }) {
 
           {/* Debate filter buttons */}
           {activeTab === 'debates' && (
-            <div className="p-4 border-b border-white/10 flex gap-2">
-              <button
-                onClick={() => setDebateFilter('all')}
-                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all
-                           ${debateFilter === 'all'
-                             ? 'bg-[#c9a35e] text-white'
-                             : 'bg-white/5 text-white/50 hover:text-white hover:bg-white/10'}`}
-              >
-                All Debates
-              </button>
+            <div className="p-4 border-b border-white/10 flex gap-2 flex-wrap">
               <button
                 onClick={() => setDebateFilter('invitations')}
                 className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all
                            ${debateFilter === 'invitations'
-                             ? 'bg-[#c9a35e] text-white'
+                             ? 'bg-veritas-pink text-white'
                              : 'bg-white/5 text-white/50 hover:text-white hover:bg-white/10'}`}
               >
-                Pending Challenges
+                Pending
+              </button>
+              <button
+                onClick={() => setDebateFilter('all')}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all
+                           ${debateFilter === 'all'
+                             ? 'bg-veritas-pink text-white'
+                             : 'bg-white/5 text-white/50 hover:text-white hover:bg-white/10'}`}
+              >
+                All
+              </button>
+              <button
+                onClick={() => setDebateFilter('active')}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all
+                           ${debateFilter === 'active'
+                             ? 'bg-veritas-pink text-white'
+                             : 'bg-white/5 text-white/50 hover:text-white hover:bg-white/10'}`}
+              >
+                Active
+              </button>
+              <button
+                onClick={() => setDebateFilter('completed')}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all
+                           ${debateFilter === 'completed'
+                             ? 'bg-veritas-pink text-white'
+                             : 'bg-white/5 text-white/50 hover:text-white hover:bg-white/10'}`}
+              >
+                Completed
               </button>
             </div>
           )}
 
           {!loading && !error && activeTab === 'debates' && debates.length === 0 && (
             <div className="p-20 text-center text-white/50">
-              {debateFilter === 'invitations'
-                ? 'No pending challenges. You have no debate invitations to respond to.'
-                : 'No active debates. Create a debate challenge to get started!'}
+              {debateFilter === 'invitations' && 'No pending challenges. You have no debate invitations to respond to.'}
+              {debateFilter === 'active' && 'No active debates in progress.'}
+              {debateFilter === 'completed' && 'No completed debates yet.'}
+              {debateFilter === 'all' && 'No debates found. Create a debate challenge to get started!'}
             </div>
           )}
 

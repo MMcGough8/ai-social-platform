@@ -36,9 +36,9 @@ function DebateChallengeButton({ postAuthor, postContent, currentUserId, onDebat
     <>
       <button
         onClick={handleClick}
-        className="flex items-center gap-2 cursor-pointer transition-all duration-300
-                   p-1.5 rounded-[10px] relative bg-transparent border-none
-                   text-white/50 text-[13px] font-semibold
+        className="flex items-center justify-center cursor-pointer transition-all duration-300
+                   p-1.5 rounded-[10px] bg-transparent border-none
+                   text-white/50 w-8
                    hover:text-[#c9a35e] hover:bg-[#c9a35e]/10"
         title="Challenge to Debate"
       >

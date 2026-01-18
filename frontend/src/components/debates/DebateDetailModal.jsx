@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Trophy } from 'lucide-react';
+import { X, Trophy, Swords } from 'lucide-react';
 import debateService from '../../services/debateService';
 import TurnIndicator from './TurnIndicator';
 import ArgumentThread from './ArgumentThread';
@@ -56,7 +56,7 @@ function DebateDetailModal({ isOpen, onClose, debate: initialDebate, currentUser
     const badges = {
       PENDING: { bg: 'bg-yellow-500/20', border: 'border-yellow-500/50', text: 'text-yellow-300', label: 'Pending' },
       ACTIVE: { bg: 'bg-red-500/20', border: 'border-red-500/50', text: 'text-red-300', label: 'Active' },
-      VOTING: { bg: 'bg-blue-500/20', border: 'border-blue-500/50', text: 'text-blue-300', label: 'Voting' },
+      VOTING: { bg: 'bg-[#c9a35e]/20', border: 'border-[#c9a35e]/50', text: 'text-[#c9a35e]', label: 'Voting' },
       COMPLETED: { bg: 'bg-green-500/20', border: 'border-green-500/50', text: 'text-green-300', label: 'Completed' },
     };
     const badge = badges[status] || badges.PENDING;
@@ -76,7 +76,7 @@ function DebateDetailModal({ isOpen, onClose, debate: initialDebate, currentUser
         <div className="p-6 border-b border-white/10 flex-shrink-0">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <span className="text-3xl">⚔️</span>
+              <Swords className="w-8 h-8 text-[#c9a35e]" />
               <h2 className="text-2xl font-bold">Debate</h2>
               {getStatusBadge(debate?.status)}
             </div>

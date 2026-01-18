@@ -365,58 +365,52 @@ function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, onPos
           {/* Action buttons row - ALIGNED WITH FOLLOW BUTTON */}
           <div className="flex items-center justify-between">
             {/* Left side: interaction buttons */}
-            <div className="flex gap-6 text-white/50">
-              <button 
-                onClick={handleToggleReplies}
-                className={`flex items-center gap-2 cursor-pointer transition-all duration-300 
-                           p-1.5 rounded-[10px] relative bg-transparent border-none 
-                           text-inherit text-[13px] font-semibold
-                           ${replyCount > 0 ? 'hover:text-blue-400 hover:bg-blue-400/10' : 'opacity-50 cursor-default'}`}
-              >
-                <MessageCircle className="w-5 h-5" />
-                <span>{replyCount}</span>
-                {replyCount > 0 && (
-                  <span className={`text-xs transition-transform duration-200 ${showReplies ? 'rotate-180' : ''}`}>
-                    ▼
-                  </span>
-                )}
+            <div className="flex gap-4 text-white/50">
+              <button
+                onClick={handleLike}
+                disabled={isLiking}
+                className={`flex items-center justify-center gap-1.5 cursor-pointer transition-all duration-300
+                           p-1.5 rounded-[10px] bg-transparent border-none
+                           text-[13px] font-semibold w-14
+                           ${isLiked
+                            ? 'text-red-500 hover:text-red-600 hover:bg-red-500/10'
+                            : 'text-white/50 hover:text-veritas-pink hover:bg-veritas-pink/10'}
+                          disabled:opacity-50`}>
+                <Heart className={`w-5 h-5 flex-shrink-0 ${isLiked ? 'fill-current' : ''}`} />
+                <span className="min-w-[1.25rem] text-center">{localLikeCount}</span>
               </button>
               <button
                 onClick={handleRepost}
                 disabled={isReposting || isReposted}
-                className={`flex items-center gap-2 cursor-pointer transition-all duration-300
-                           p-1.5 rounded-[10px] relative bg-transparent border-none
-                           text-[13px] font-semibold
+                className={`flex items-center justify-center gap-1.5 cursor-pointer transition-all duration-300
+                           p-1.5 rounded-[10px] bg-transparent border-none
+                           text-[13px] font-semibold w-14
                            ${isReposted
                              ? 'text-green-500 cursor-default'
                              : 'text-white/50 hover:text-green-400 hover:bg-green-400/10'}
                            disabled:opacity-70`}>
-                <Repeat2 className="w-5 h-5" />
-                <span>{localRepostCount}</span>
+                <Repeat2 className="w-5 h-5 flex-shrink-0" />
+                <span className="min-w-[1.25rem] text-center">{localRepostCount}</span>
               </button>
-              <button 
-                onClick={handleLike} 
-                disabled={isLiking}
-                className={`flex items-center gap-2 cursor-pointer transition-all duration-300 
-                           p-1.5 rounded-[10px] relative bg-transparent border-none 
-                           text-[13px] font-semibold
-                           ${isLiked 
-                            ? 'text-red-500 hover:text-red-600 hover:bg-red-500/10' 
-                            : 'text-white/50 hover:text-veritas-pink hover:bg-veritas-pink/10'}
-                          disabled:opacity-50`}>
-                <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
-                <span>{localLikeCount}</span>
+              <button
+                onClick={handleToggleReplies}
+                className={`flex items-center justify-center gap-1.5 cursor-pointer transition-all duration-300
+                           p-1.5 rounded-[10px] bg-transparent border-none
+                           text-inherit text-[13px] font-semibold w-14
+                           ${replyCount > 0 ? 'hover:text-blue-400 hover:bg-blue-400/10' : 'opacity-50 cursor-default'}`}
+              >
+                <MessageCircle className="w-5 h-5 flex-shrink-0" />
+                <span className="min-w-[1.25rem] text-center">{replyCount}</span>
               </button>
-              <FactCheckButton
-                onClick={handleFactCheck}
-                isLoading={isFactChecking}
-                isChecked={factCheckStatus && factCheckStatus !== 'UNCHECKED'}
-                size="sm"
-              />
               <DebateChallengeButton
                 postAuthor={author}
                 postContent={content}
                 currentUserId={currentUserId}
+              />
+              <FactCheckButton
+                onClick={handleFactCheck}
+                isLoading={isFactChecking}
+                isChecked={factCheckStatus && factCheckStatus !== 'UNCHECKED'}
               />
             </div>
 

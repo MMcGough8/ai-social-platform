@@ -25,12 +25,12 @@ function DebateCard({ debate, onDebateUpdated }) {
         text: 'text-red-300', 
         label: 'Active' 
       },
-      VOTING: { 
+      VOTING: {
         icon: <Vote className="w-3 h-3" />,
-        bg: 'bg-blue-500/20', 
-        border: 'border-blue-500/50', 
-        text: 'text-blue-300', 
-        label: 'Voting' 
+        bg: 'bg-[#c9a35e]/20',
+        border: 'border-[#c9a35e]/50',
+        text: 'text-[#c9a35e]',
+        label: 'Voting'
       },
       COMPLETED: { 
         icon: <CheckCircle className="w-3 h-3" />,
