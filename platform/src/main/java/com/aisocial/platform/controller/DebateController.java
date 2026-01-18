@@ -1,6 +1,7 @@
 package com.aisocial.platform.controller;
 
 import com.aisocial.platform.dto.CreateDebateRequestDTO;
+import com.aisocial.platform.dto.DebateArgumentDTO;
 import com.aisocial.platform.dto.DebateDTO;
 import com.aisocial.platform.dto.SubmitArgumentRequestDTO;
 import com.aisocial.platform.entity.Debate;
@@ -151,7 +152,7 @@ public class DebateController {
      */
     @PostMapping("/{id}/arguments")
     @Transactional
-    public ResponseEntity<DebateArgument> submitArgument(
+    public ResponseEntity<DebateArgumentDTO> submitArgument(
             @PathVariable UUID id,
             @RequestHeader("X-User-Id") UUID userId,
             @RequestBody SubmitArgumentRequestDTO request) {
@@ -168,7 +169,7 @@ public class DebateController {
 
         try {
             DebateArgument argument = debateStateMachine.submitArgument(debate, user, request.getContent());
-            return new ResponseEntity<>(argument, HttpStatus.CREATED);
+            return new ResponseEntity<>(DebateArgumentDTO.fromEntity(argument), HttpStatus.CREATED);
         } catch (IllegalStateException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }

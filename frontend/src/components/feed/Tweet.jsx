@@ -8,6 +8,7 @@ import { getStyleClasses } from './PostStyler'; // #75
 import { TrustScoreBadge } from '../trustscore';
 import { MessageCircle, Repeat2, Heart } from 'lucide-react';
 import logo from '../../assets/CondorTransparent.png';
+import DebateChallengeButton from '../debates/DebateChallengeButton';
 
 function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, onPostDeleted, canDelete = false, depth = 0 }) {
   const [isLiked, setIsLiked] = useState(post.isLikedByCurrentUser || false);
@@ -412,6 +413,11 @@ function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, onPos
                 isLoading={isFactChecking}
                 isChecked={factCheckStatus && factCheckStatus !== 'UNCHECKED'}
                 size="sm"
+              />
+              <DebateChallengeButton
+                postAuthor={author}
+                postContent={content}
+                currentUserId={currentUserId}
               />
             </div>
 

@@ -60,6 +60,27 @@ const debateService = {
     });
     return response.data;
   },
+
+  getDebateArguments: async (debateId) => {
+    const response = await api.get(`/api/debate-arguments/debate/${debateId}`);
+    return response.data;
+  },
+
+  getUserVote: async (debateId, userId) => {
+    const response = await api.get(`/api/debates/${debateId}/vote`, {
+      headers: { 'X-User-Id': userId }
+    });
+    return response.data;
+  },
+
+  submitVote: async (debateId, userId, voteType) => {
+    const response = await api.post(`/api/debates/${debateId}/vote`, {
+      vote: voteType
+    }, {
+      headers: { 'X-User-Id': userId }
+    });
+    return response.data;
+  },
 };
 
 export default debateService;

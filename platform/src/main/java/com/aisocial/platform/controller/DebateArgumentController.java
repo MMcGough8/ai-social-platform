@@ -6,12 +6,14 @@ import com.aisocial.platform.entity.DebateArgument;
 import com.aisocial.platform.service.DebateArgumentService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
 
 import java.util.List;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/debate-arguments")
+@CrossOrigin(origins = "*")
 public class DebateArgumentController {
 
     private final DebateArgumentService debateArgumentService;

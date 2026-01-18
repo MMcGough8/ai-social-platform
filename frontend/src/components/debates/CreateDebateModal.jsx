@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useUser } from '../../context/UserContext';
 import debateService from '../../services/debateService';
@@ -10,6 +10,15 @@ function CreateDebateModal({ isOpen, onClose, onDebateCreated, prefilledDefender
   const [defenderId, setDefenderId] = useState(prefilledDefender?.id || '');
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState('');
+
+  // Reset state when modal opens with new props
+  useEffect(() => {
+    if (isOpen) {
+      setTopic(prefilledTopic || '');
+      setDefenderId(prefilledDefender?.id || '');
+      setError('');
+    }
+  }, [isOpen, prefilledTopic, prefilledDefender]);
 
   // Defender is locked if prefilled from a post
   const isDefenderLocked = !!prefilledDefender;

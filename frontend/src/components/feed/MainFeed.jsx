@@ -8,9 +8,10 @@ import debateService from '../../services/debateService';
 import DebateCard from '../debates/DebateCard';
 import { Search } from 'lucide-react';
 
-function MainFeed() {
+function MainFeed({ debateFilterRequest }) {
   const { currentUser } = useUser();
   const [activeTab, setActiveTab] = useState('following');
+  const [debateFilter, setDebateFilter] = useState('all'); // 'all' or 'invitations'
   const [posts, setPosts] = useState([]);
   const [debates, setDebates] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -32,7 +33,19 @@ function MainFeed() {
     if (currentUser) {
       loadPosts();
     }
-  }, [currentUser, activeTab]);
+  }, [currentUser, activeTab, debateFilter]);
+
+  // Handle navigation request from Sidebar (e.g., clicking "Challenges")
+  useEffect(() => {
+    if (debateFilterRequest) {
+      setActiveTab('debates');
+      if (debateFilterRequest.filter === 'invitations') {
+        setDebateFilter('invitations');
+      } else {
+        setDebateFilter('all');
+      }
+    }
+  }, [debateFilterRequest]);
 
   useEffect(() => {
     if (!searchQuery.trim()) {
@@ -173,9 +186,17 @@ function MainFeed() {
         );
         setPosts(sortedFeed);
       } else if (activeTab === 'debates') {
-        const activeDebates = await debateService.getActiveDebates();
-        const allDebates = [...activeDebates];
-        const sortedDebates = allDebates.sort((a, b) => 
+        let debatesToShow = [];
+        if (debateFilter === 'invitations') {
+          // Load pending challenges where current user is the defender
+          debatesToShow = await debateService.getPendingChallenges(currentUser.id);
+        } else {
+          // Load all active and voting debates
+          const activeDebates = await debateService.getActiveDebates();
+          const votingDebates = await debateService.getVotingDebates();
+          debatesToShow = [...activeDebates, ...votingDebates];
+        }
+        const sortedDebates = debatesToShow.sort((a, b) =>
           new Date(b.createdAt) - new Date(a.createdAt)
         );
         setDebates(sortedDebates);
@@ -267,7 +288,7 @@ function MainFeed() {
                        : 'text-white/50 hover:text-white/80 hover:bg-white/5'}`}
           onClick={() => setActiveTab('debates')}
         >
-          ⚔️ Debates
+          Debates
         </div>
       </div>
 
@@ -363,9 +384,35 @@ function MainFeed() {
             </div>
           )}
 
+          {/* Debate filter buttons */}
+          {activeTab === 'debates' && (
+            <div className="p-4 border-b border-white/10 flex gap-2">
+              <button
+                onClick={() => setDebateFilter('all')}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all
+                           ${debateFilter === 'all'
+                             ? 'bg-[#c9a35e] text-white'
+                             : 'bg-white/5 text-white/50 hover:text-white hover:bg-white/10'}`}
+              >
+                All Debates
+              </button>
+              <button
+                onClick={() => setDebateFilter('invitations')}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all
+                           ${debateFilter === 'invitations'
+                             ? 'bg-[#c9a35e] text-white'
+                             : 'bg-white/5 text-white/50 hover:text-white hover:bg-white/10'}`}
+              >
+                Pending Challenges
+              </button>
+            </div>
+          )}
+
           {!loading && !error && activeTab === 'debates' && debates.length === 0 && (
             <div className="p-20 text-center text-white/50">
-              No active debates. Create a debate challenge to get started!
+              {debateFilter === 'invitations'
+                ? 'No pending challenges. You have no debate invitations to respond to.'
+                : 'No active debates. Create a debate challenge to get started!'}
             </div>
           )}
 

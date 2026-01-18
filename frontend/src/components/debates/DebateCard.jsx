@@ -1,11 +1,13 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useUser } from '../../context/UserContext';
 import debateService from '../../services/debateService';
 import { Check } from 'lucide-react';
+import DebateDetailModal from './DebateDetailModal';
 
 function DebateCard({ debate, onDebateUpdated }) {
   const { currentUser } = useUser();
+  const [showDetailModal, setShowDetailModal] = useState(false);
 
   const getStatusBadge = (status) => {
     const badges = {
@@ -43,7 +45,9 @@ function DebateCard({ debate, onDebateUpdated }) {
     }
   };
 
-  const isDefender = currentUser?.id === debate.defender?.id;
+  // Use String() to handle potential type mismatches (string vs number/UUID)
+  const isDefender = currentUser?.id && debate.defender?.id &&
+    String(currentUser.id) === String(debate.defender.id);
   const isPending = debate.status === 'PENDING';
   const canRespond = isPending && isDefender;
 
@@ -178,10 +182,21 @@ function DebateCard({ debate, onDebateUpdated }) {
         </div>
       )}
 
-      <button className="mt-3 w-full px-4 py-2 bg-white/5 hover:bg-white/10 rounded-xl
-                         text-sm font-semibold transition-all duration-300">
-        View Full Debate →
+      <button
+        onClick={() => setShowDetailModal(true)}
+        className="mt-3 w-full px-4 py-2 bg-white/5 hover:bg-white/10 rounded-xl
+                   text-sm font-semibold transition-all duration-300"
+      >
+        View Full Debate
       </button>
+
+      <DebateDetailModal
+        isOpen={showDetailModal}
+        onClose={() => setShowDetailModal(false)}
+        debate={debate}
+        currentUserId={currentUser?.id}
+        onDebateUpdated={onDebateUpdated}
+      />
     </div>
   );
 }
