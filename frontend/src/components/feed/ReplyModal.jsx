@@ -52,11 +52,13 @@ function ReplyModal({ post, currentUserId, onClose, onReplyCreated, clickY = 0 }
     }
   };
 
-  // Calculate how much to shift from center (same approach as FactCheckModal)
-  const centerY = window.innerHeight / 2;
-  const offsetY = clickY ? clickY - centerY : 0;
-
-  console.log('ReplyModal - clickY:', clickY, 'centerY:', centerY, 'offsetY:', offsetY);
+  // Center the modal (no Y offset)
+  const modalStyle = {
+    position: 'fixed',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+  };
 
   return ReactDOM.createPortal(
     <div
@@ -70,7 +72,7 @@ function ReplyModal({ post, currentUserId, onClose, onReplyCreated, clickY = 0 }
       {/* Modal */}
       <div
         className="relative w-full max-w-lg bg-[#0f0f0f] border border-white/10 rounded-2xl shadow-xl"
-        style={{ transform: `translateY(${offsetY}px)` }}
+        style={modalStyle}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

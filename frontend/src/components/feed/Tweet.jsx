@@ -6,7 +6,6 @@ import factCheckService from '../../services/factcheckService';
 import { FactCheckBadge, FactCheckButton, FactCheckModal } from '../factcheck';
 import { getStyleClasses } from './PostStyler'; // #75
 import { TrustScoreBadge } from '../trustscore';
-import CreateDebateModal from '../debates/CreateDebateModal';
 
 function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, onPostDeleted, canDelete = false, depth = 0 }) {
   const [isLiked, setIsLiked] = useState(post.isLikedByCurrentUser || false);
@@ -36,9 +35,6 @@ function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, onPos
   const [isReposted, setIsReposted] = useState(post.isRepostedByCurrentUser || false);
   const [localRepostCount, setLocalRepostCount] = useState(post.repostCount || 0);
   const [isReposting, setIsReposting] = useState(false);
-
-  // Challenge modal state
-  const [showChallengeModal, setShowChallengeModal] = useState(false);
 
   // Check if this is a repost - if so, display original post content
   const isRepost = post.repostOf != null;
@@ -173,8 +169,16 @@ function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, onPos
   };
 
   const handleOpenReplyModal = (e) => {
+    // Prevent any default behaviors and stop propagation
     e.preventDefault();
     e.stopPropagation();
+    
+    // Capture the Y coordinate of the click relative to the viewport
+    const modalClickY = e.clientY;
+    
+    console.log('Reply button clicked at Y:', modalClickY);
+    
+    setClickY(modalClickY);
     setShowReplyModal(true);
   };
 
@@ -275,49 +279,53 @@ function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, onPos
         style={{ paddingLeft: `${20 + leftPadding}px` }}
       >
         <div className="text-4xl flex-shrink-0 relative">🎨</div>
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-2 flex-wrap">
-            <span className="font-bold text-[15px] text-veritas-coral">{author.displayName}</span>
-            <span className="text-white/50 text-sm">@{author.username}</span>
-            {/* Trust Score Badge */}
-            {author.trustScore != null && (
-              <TrustScoreBadge
-                score={author.trustScore}
-                size="xs"
-                showTooltip={true}
-                userId={author.id}
-              />
-            )}
-            <span className="text-white/50 text-sm">·</span>
-            <span className="text-white/50 text-sm">{timeAgo}</span>
+        <div className="flex-1 min-w-0">
+          {/* Header row with metadata and Follow button */}
+          <div className="flex items-start justify-between gap-4 mb-2">
+            {/* Left side: metadata (wrappable) */}
+            <div className="flex items-center gap-2 flex-wrap min-w-0">
+              <span className="font-bold text-[15px]">{author.displayName}</span>
+              <span className="text-white/50 text-sm">@{author.username}</span>
+              {/* Trust Score Badge */}
+              {author.trustScore != null && (
+                <TrustScoreBadge
+                  score={author.trustScore}
+                  size="xs"
+                  showTooltip={true}
+                  userId={author.id}
+                />
+              )}
+              <span className="text-white/50 text-sm">·</span>
+              <span className="text-white/50 text-sm">{timeAgo}</span>
 
-            {/* Fact Check Badge */}
-            {factCheckStatus && factCheckStatus !== 'UNCHECKED' && (
-              <FactCheckBadge
-                status={factCheckStatus}
-                score={factCheckScore}
-                size="xs"
-                onClick={handleViewFactCheck}
-              />
-            )}
+              {/* Fact Check Badge */}
+              {factCheckStatus && factCheckStatus !== 'UNCHECKED' && (
+                <FactCheckBadge
+                  status={factCheckStatus}
+                  score={factCheckScore}
+                  size="xs"
+                  onClick={handleViewFactCheck}
+                />
+              )}
 
-            {canDelete && isOwnPost && (
-              <button
-                onClick={handleDelete}
-                disabled={isDeleting}
-                className="
-                  ml-2 px-3 py-1.5 rounded-full text-xs font-bold
-                  text-red-400 border border-red-500/40
-                  hover:bg-red-500/20 hover:border-red-500
-                  transition-all
-                  disabled:opacity-50 disabled:cursor-not-allowed
-                "
-              >
-                {isDeleting ? 'Deleting…' : 'Delete'}
-              </button>
-            )}
+              {canDelete && isOwnPost && (
+                <button
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                  className="
+                    ml-2 px-3 py-1.5 rounded-full text-xs font-bold
+                    text-red-400 border border-red-500/40
+                    hover:bg-red-500/20 hover:border-red-500
+                    transition-all
+                    disabled:opacity-50 disabled:cursor-not-allowed
+                  "
+                >
+                  {isDeleting ? 'Deleting…' : 'Delete'}
+                </button>
+              )}
+            </div>
 
-            {/* Small Follow Button on Post */}
+            {/* Right side: Follow button (fixed position) */}
             {!isOwnPost && currentUserId && (
               <button
                 onClick={handleFollowToggle}
@@ -325,7 +333,7 @@ function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, onPos
                 onMouseLeave={() => setIsFollowHovering(false)}
                 disabled={isFollowLoading}
                 className={`
-                  ml-auto px-4 py-1.5 rounded-full font-bold text-xs transition-all duration-300
+                  flex-shrink-0 px-4 py-1.5 rounded-full font-bold text-xs transition-all duration-300
                   disabled:opacity-50 disabled:cursor-not-allowed
                   ${isFollowing 
                     ? 'bg-white/10 border border-white/20 text-white hover:bg-red-500/20 hover:border-red-500 hover:text-red-400' 
@@ -353,82 +361,74 @@ function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, onPos
             {content}
           </div>
           
-          <div className="flex gap-6 text-white/50">
-            <button 
-              onClick={handleToggleReplies}
-              className={`flex items-center gap-2 cursor-pointer transition-all duration-300 
-                         p-1.5 rounded-[10px] relative bg-transparent border-none 
-                         text-inherit text-[13px] font-semibold
-                         ${replyCount > 0 ? 'hover:text-blue-400 hover:bg-blue-400/10' : 'opacity-50 cursor-default'}`}
-            >
-              <span className="text-lg">💬</span>
-              <span>{replyCount}</span>
-              {replyCount > 0 && (
-                <span className={`text-xs transition-transform duration-200 ${showReplies ? 'rotate-180' : ''}`}>
-                  ▼
-                </span>
-              )}
-            </button>
-            <button
-              onClick={handleRepost}
-              disabled={isReposting || isReposted}
-              className={`flex items-center gap-2 cursor-pointer transition-all duration-300
-                         p-1.5 rounded-[10px] relative bg-transparent border-none
-                         text-[13px] font-semibold
-                         ${isReposted
-                           ? 'text-green-500 cursor-default'
-                           : 'text-white/50 hover:text-green-400 hover:bg-green-400/10'}
-                         disabled:opacity-70`}>
-              <span className="text-lg">🔁</span>
-              <span>{localRepostCount}</span>
-            </button>
-            <button 
-              onClick={handleLike} 
-              disabled={isLiking}
-              className={`flex items-center gap-2 cursor-pointer transition-all duration-300 
-                         p-1.5 rounded-[10px] relative bg-transparent border-none 
-                         text-[13px] font-semibold
-                         ${isLiked 
-                          ? 'text-red-500 hover:text-red-600 hover:bg-red-500/10' 
-                          : 'text-white/50 hover:text-veritas-pink hover:bg-veritas-pink/10'}
-                        disabled:opacity-50`}>
-              <span className="text-lg">{isLiked ? '❤️' : '🤍'}</span>
-              <span>{localLikeCount}</span>
-            </button>
-            <button className="flex items-center gap-2 cursor-pointer transition-all duration-300 
-                               p-1.5 rounded-[10px] relative bg-transparent border-none 
-                               text-inherit text-[13px] font-semibold
-                               hover:text-veritas-pink hover:bg-veritas-pink/10">
-              <span className="text-lg">🔖</span>
-            </button>
-            <button className="flex items-center gap-2 cursor-pointer transition-all duration-300
-                               p-1.5 rounded-[10px] relative bg-transparent border-none
-                               text-inherit text-[13px] font-semibold
-                               hover:text-veritas-pink hover:bg-veritas-pink/10">
-              <span className="text-lg">🔗</span>
-            </button>
-            {/* Challenge to Debate - only show on other users' posts */}
-            {!isOwnPost && currentUserId && (
-              <button
-                onClick={() => setShowChallengeModal(true)}
-                className="flex items-center gap-2 cursor-pointer transition-all duration-300
-                           p-1.5 rounded-[10px] relative bg-transparent border-none
+          <div className="flex items-center justify-between gap-2 text-white/50">
+            {/* Left side: action buttons */}
+            <div className="flex gap-6 min-w-0">
+              <button 
+                onClick={handleToggleReplies}
+                className={`flex items-center gap-2 cursor-pointer transition-all duration-300 
+                           p-1.5 rounded-[10px] relative bg-transparent border-none 
                            text-inherit text-[13px] font-semibold
-                           hover:text-orange-400 hover:bg-orange-400/10"
-                title="Challenge to debate"
+                           ${replyCount > 0 ? 'hover:text-blue-400 hover:bg-blue-400/10' : 'opacity-50 cursor-default'}`}
               >
-                <span className="text-lg">⚔️</span>
+                <span className="text-lg">💬</span>
+                <span>{replyCount}</span>
+                {replyCount > 0 && (
+                  <span className={`text-xs transition-transform duration-200 ${showReplies ? 'rotate-180' : ''}`}>
+                    ▼
+                  </span>
+                )}
               </button>
-            )}
-            <FactCheckButton
-              onClick={handleFactCheck}
-              isLoading={isFactChecking}
-              isChecked={factCheckStatus && factCheckStatus !== 'UNCHECKED'}
-              size="sm"
-            />
+              <button
+                onClick={handleRepost}
+                disabled={isReposting || isReposted}
+                className={`flex items-center gap-2 cursor-pointer transition-all duration-300
+                           p-1.5 rounded-[10px] relative bg-transparent border-none
+                           text-[13px] font-semibold
+                           ${isReposted
+                             ? 'text-green-500 cursor-default'
+                             : 'text-white/50 hover:text-green-400 hover:bg-green-400/10'}
+                           disabled:opacity-70`}>
+                <span className="text-lg">🔁</span>
+                <span>{localRepostCount}</span>
+              </button>
+              <button 
+                onClick={handleLike} 
+                disabled={isLiking}
+                className={`flex items-center gap-2 cursor-pointer transition-all duration-300 
+                           p-1.5 rounded-[10px] relative bg-transparent border-none 
+                           text-[13px] font-semibold
+                           ${isLiked 
+                            ? 'text-red-500 hover:text-red-600 hover:bg-red-500/10' 
+                            : 'text-white/50 hover:text-veritas-pink hover:bg-veritas-pink/10'}
+                          disabled:opacity-50`}>
+                <span className="text-lg">{isLiked ? '❤️' : '🤍'}</span>
+                <span>{localLikeCount}</span>
+              </button>
+              <button className="flex items-center gap-2 cursor-pointer transition-all duration-300 
+                                 p-1.5 rounded-[10px] relative bg-transparent border-none 
+                                 text-inherit text-[13px] font-semibold
+                                 hover:text-veritas-pink hover:bg-veritas-pink/10">
+                <span className="text-lg">🔖</span>
+              </button>
+              <button className="flex items-center gap-2 cursor-pointer transition-all duration-300
+                                 p-1.5 rounded-[10px] relative bg-transparent border-none
+                                 text-inherit text-[13px] font-semibold
+                                 hover:text-veritas-pink hover:bg-veritas-pink/10">
+                <span className="text-lg">🔗</span>
+              </button>
+              <FactCheckButton
+                onClick={handleFactCheck}
+                isLoading={isFactChecking}
+                isChecked={factCheckStatus && factCheckStatus !== 'UNCHECKED'}
+                size="sm"
+              />
+            </div>
+
+            {/* Right side: Reply button (fixed position) */}
             <button
               onClick={handleOpenReplyModal}
-              className="ml-auto px-3 py-1.5 rounded-full font-bold text-xs transition-all duration-300
+              className="flex-shrink-0 px-3 py-1.5 rounded-full font-bold text-xs transition-all duration-300
                         disabled:opacity-50 disabled:cursor-not-allowed
                         bg-gradient-to-br from-veritas-pink to-veritas-pink-dark text-white border border-transparent hover:shadow-[0_4px_12px_rgba(255,107,157,0.3)]"
             >
@@ -476,6 +476,7 @@ function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, onPos
             handleCloseReplyModal();
             if (onPostUpdated) onPostUpdated();
           }}
+          clickY={clickY}
         />
       )}
       {/* Fact Check Modal */}
@@ -486,16 +487,6 @@ function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, onPos
         postContent={content}
         clickY={clickY}
       />
-
-      {/* Challenge to Debate Modal */}
-      {showChallengeModal && (
-        <CreateDebateModal
-          isOpen={showChallengeModal}
-          onClose={() => setShowChallengeModal(false)}
-          prefilledDefender={author}
-          prefilledTopic={content.length > 200 ? content.substring(0, 200) + '...' : content}
-        />
-      )}
     </div>
   );
 }
