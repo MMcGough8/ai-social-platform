@@ -393,18 +393,6 @@ function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, onPos
               <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
               <span>{localLikeCount}</span>
             </button>
-            <button className="flex items-center gap-2 cursor-pointer transition-all duration-300 
-                               p-1.5 rounded-[10px] relative bg-transparent border-none 
-                               text-inherit text-[13px] font-semibold
-                               hover:text-veritas-pink hover:bg-veritas-pink/10">
-              <Bookmark className="w-5 h-5" />
-            </button>
-            <button className="flex items-center gap-2 cursor-pointer transition-all duration-300
-                               p-1.5 rounded-[10px] relative bg-transparent border-none
-                               text-inherit text-[13px] font-semibold
-                               hover:text-veritas-pink hover:bg-veritas-pink/10">
-              <Share2 className="w-5 h-5" />
-            </button>
             <FactCheckButton
               onClick={handleFactCheck}
               isLoading={isFactChecking}
