@@ -39,7 +39,7 @@ function DebateChallengeButton({ postAuthor, postContent, currentUserId, onDebat
         className="flex items-center justify-center cursor-pointer transition-all duration-300
                    p-1.5 rounded-[10px] bg-transparent border-none
                    text-white/50 w-8
-                   hover:text-[#c9a35e] hover:bg-[#c9a35e]/10"
+                   hover:text-veritas-pink hover:bg-veritas-pink/10"
         title="Challenge to Debate"
       >
         <Swords className="w-5 h-5" />

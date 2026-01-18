@@ -6,6 +6,7 @@ import RightSidebar from './RightSidebar';
 function Layout() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [debateFilterRequest, setDebateFilterRequest] = useState(null);
+  const [debateRefreshTrigger, setDebateRefreshTrigger] = useState(0);
 
   const handlePostCreated = () => {
     setRefreshTrigger(prev => prev + 1);
@@ -15,6 +16,10 @@ function Layout() {
     setDebateFilterRequest({ filter, timestamp: Date.now() });
   };
 
+  const handleDebateUpdated = () => {
+    setDebateRefreshTrigger(prev => prev + 1);
+  };
+
   return (
     <div className="min-h-screen flex justify-center px-5">
       <div className="w-full max-w-[1400px] grid gap-5 py-5
@@ -22,8 +27,8 @@ function Layout() {
                       sm:grid-cols-1
                       md:grid-cols-[80px_1fr_300px]
                       lg:grid-cols-[280px_1fr_380px]">
-        <Sidebar onNavigateToDebates={handleNavigateToDebates} />
-        <MainFeed refreshTrigger={refreshTrigger} debateFilterRequest={debateFilterRequest} />
+        <Sidebar onNavigateToDebates={handleNavigateToDebates} debateRefreshTrigger={debateRefreshTrigger} />
+        <MainFeed refreshTrigger={refreshTrigger} debateFilterRequest={debateFilterRequest} onDebateUpdated={handleDebateUpdated} />
         <RightSidebar onPostCreated={handlePostCreated} />
       </div>
     </div>

@@ -8,7 +8,7 @@ import { Edit } from 'lucide-react';
 import logo from '../../assets/CondorTransparent.png';
 
 
-function Sidebar({ onNavigateToProfile, onNavigateToSearch, onNavigateToDebates }) {
+function Sidebar({ onNavigateToProfile, onNavigateToSearch, onNavigateToDebates, debateRefreshTrigger }) {
   const { currentUser, allUsers, loading, switchUser } = useUser();
 
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
@@ -19,7 +19,7 @@ function Sidebar({ onNavigateToProfile, onNavigateToSearch, onNavigateToDebates 
     if (currentUser) {
       loadPendingChallenges();
     }
-  }, [currentUser]);
+  }, [currentUser, debateRefreshTrigger]);
 
   const loadPendingChallenges = async () => {
     try {
@@ -129,22 +129,24 @@ function Sidebar({ onNavigateToProfile, onNavigateToSearch, onNavigateToDebates 
         <button
           onClick={() => setIsDebateModalOpen(true)}
           className="w-full px-4 py-3 rounded-xl text-left font-semibold
-                     bg-gradient-to-br from-red-500/20 to-orange-500/20
-                     border border-red-500/30 hover:bg-red-500/30 transition"
+                     bg-gradient-to-br from-veritas-pink/20 to-veritas-pink-dark/20
+                     border border-veritas-pink/30 hover:border-veritas-pink/50
+                     hover:bg-veritas-pink/30 transition-all duration-300"
         >
-        Create Debate
+          Create Debate
         </button>
 
         <button
           onClick={() => onNavigateToDebates && onNavigateToDebates('invitations')}
           className="w-full px-4 py-3 rounded-xl text-left font-semibold
-                     transition flex items-center justify-between
-                     bg-gradient-to-br from-purple-500/20 to-pink-500/20
-                     border border-purple-500/30 hover:bg-purple-500/30"
+                     transition-all duration-300 flex items-center justify-between
+                     bg-gradient-to-br from-veritas-pink/20 to-veritas-pink-dark/20
+                     border border-veritas-pink/30 hover:border-veritas-pink/50
+                     hover:bg-veritas-pink/30"
         >
           <span>Challenges</span>
           {pendingChallenges.length > 0 && (
-            <span className="bg-orange-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+            <span className="bg-veritas-pink text-white text-xs font-bold px-2 py-0.5 rounded-full">
               {pendingChallenges.length}
             </span>
           )}

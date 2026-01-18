@@ -8,7 +8,7 @@ import debateService from '../../services/debateService';
 import DebateCard from '../debates/DebateCard';
 import { Search } from 'lucide-react';
 
-function MainFeed({ debateFilterRequest }) {
+function MainFeed({ debateFilterRequest, onDebateUpdated }) {
   const { currentUser } = useUser();
   const [activeTab, setActiveTab] = useState('following');
   const [debateFilter, setDebateFilter] = useState('all'); // 'all' or 'invitations'
@@ -16,6 +16,7 @@ function MainFeed({ debateFilterRequest }) {
   const [debates, setDebates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [pendingCount, setPendingCount] = useState(0);
 
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
@@ -32,8 +33,26 @@ function MainFeed({ debateFilterRequest }) {
   useEffect(() => {
     if (currentUser) {
       loadPosts();
+      loadPendingCount();
     }
   }, [currentUser, activeTab, debateFilter]);
+
+  const loadPendingCount = async () => {
+    try {
+      const pending = await debateService.getPendingChallenges(currentUser.id);
+      setPendingCount(pending.length);
+    } catch (err) {
+      console.error('Error loading pending count:', err);
+    }
+  };
+
+  const handleDebateUpdated = () => {
+    loadPosts();
+    loadPendingCount();
+    if (onDebateUpdated) {
+      onDebateUpdated();
+    }
+  };
 
   // Handle navigation request from Sidebar (e.g., clicking "Challenges")
   useEffect(() => {
@@ -193,6 +212,9 @@ function MainFeed({ debateFilterRequest }) {
         } else if (debateFilter === 'active') {
           // Load only ACTIVE debates (in progress)
           debatesToShow = await debateService.getActiveDebates();
+        } else if (debateFilter === 'voting') {
+          // Load only VOTING debates
+          debatesToShow = await debateService.getVotingDebates();
         } else if (debateFilter === 'completed') {
           // Load completed debates for current user
           const userDebates = await debateService.getDebatesByUser(currentUser.id);
@@ -287,15 +309,22 @@ function MainFeed({ debateFilterRequest }) {
         >
           Your Posts
         </div>
-        <div 
-          className={`flex-1 p-3.5 text-center font-bold cursor-pointer relative 
+        <div
+          className={`flex-1 p-3.5 text-center font-bold cursor-pointer
                      text-[15px] rounded-xl transition-all duration-300
-                     ${activeTab === 'debates' 
-                       ? 'text-white bg-gradient-to-br from-veritas-pink/20 to-veritas-purple/20' 
+                     flex items-center justify-center gap-2
+                     ${activeTab === 'debates'
+                       ? 'text-white bg-gradient-to-br from-veritas-pink/20 to-veritas-purple/20'
                        : 'text-white/50 hover:text-white/80 hover:bg-white/5'}`}
           onClick={() => setActiveTab('debates')}
         >
           Debates
+          {pendingCount > 0 && (
+            <span className="bg-veritas-pink text-white text-xs font-bold
+                           px-1.5 py-0.5 rounded-full min-w-[20px]">
+              {pendingCount}
+            </span>
+          )}
         </div>
       </div>
 
@@ -422,6 +451,15 @@ function MainFeed({ debateFilterRequest }) {
                 Active
               </button>
               <button
+                onClick={() => setDebateFilter('voting')}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all
+                           ${debateFilter === 'voting'
+                             ? 'bg-veritas-pink text-white'
+                             : 'bg-white/5 text-white/50 hover:text-white hover:bg-white/10'}`}
+              >
+                Voting
+              </button>
+              <button
                 onClick={() => setDebateFilter('completed')}
                 className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all
                            ${debateFilter === 'completed'
@@ -437,6 +475,7 @@ function MainFeed({ debateFilterRequest }) {
             <div className="p-20 text-center text-white/50">
               {debateFilter === 'invitations' && 'No pending challenges. You have no debate invitations to respond to.'}
               {debateFilter === 'active' && 'No active debates in progress.'}
+              {debateFilter === 'voting' && 'No debates currently in voting phase.'}
               {debateFilter === 'completed' && 'No completed debates yet.'}
               {debateFilter === 'all' && 'No debates found. Create a debate challenge to get started!'}
             </div>
@@ -461,10 +500,10 @@ function MainFeed({ debateFilterRequest }) {
           {!loading && !error && activeTab === 'debates' && debates.length > 0 && (
             <div>
               {debates.map(debate => (
-                <DebateCard 
-                  key={debate.id} 
+                <DebateCard
+                  key={debate.id}
                   debate={debate}
-                  onDebateUpdated={loadPosts}
+                  onDebateUpdated={handleDebateUpdated}
                 />
               ))}
             </div>

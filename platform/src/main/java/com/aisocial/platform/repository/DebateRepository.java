@@ -38,7 +38,7 @@ public interface DebateRepository extends JpaRepository<Debate, UUID> {
     @Query("""
         SELECT d
         FROM Debate d
-        WHERE d.defender = :user AND d.status = 'PENDING'
+        WHERE d.defender = :user AND d.status = com.aisocial.platform.entity.DebateStatus.PENDING
         ORDER BY d.createdAt DESC
     """)
     List<Debate> findPendingChallengesForUser(@Param("user") User user);

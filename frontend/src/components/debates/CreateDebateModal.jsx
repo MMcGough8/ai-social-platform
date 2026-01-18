@@ -64,11 +64,11 @@ function CreateDebateModal({ isOpen, onClose, onDebateCreated, prefilledDefender
 
   const modalContent = (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
-      <div className="bg-gradient-to-br from-[#1a3a52] to-[#234562] border-2 border-white/20 
+      <div className="bg-gradient-to-br from-[#1a1625] to-[#2d1f3d] border-2 border-white/20
                       rounded-3xl max-w-2xl w-full p-8 shadow-2xl">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold flex items-center gap-3">
-            <Swords className="w-7 h-7" />
+            <Swords className="w-7 h-7 text-[#c9a35e]" />
             <span>
               {isDefenderLocked
                 ? `Challenge @${prefilledDefender.username}`
@@ -77,7 +77,7 @@ function CreateDebateModal({ isOpen, onClose, onDebateCreated, prefilledDefender
           </h2>
           <button
             onClick={onClose}
-            className="text-white/50 hover:text-white transition-colors"
+            className="text-white/50 hover:text-white hover:bg-white/10 p-2 rounded-lg transition-all"
           >
             <X className="w-6 h-6" />
           </button>
@@ -105,9 +105,9 @@ function CreateDebateModal({ isOpen, onClose, onDebateCreated, prefilledDefender
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
               placeholder="What do you want to debate about?"
-              className="w-full bg-white/10 border border-white/20 rounded-xl p-4 text-white
-                         placeholder:text-white/30 focus:outline-none focus:border-[#c9a35e]
-                         min-h-[100px] resize-none"
+              className="w-full bg-white/5 border border-white/20 rounded-xl p-4 text-white
+                         placeholder:text-white/30 focus:outline-none focus:border-veritas-pink
+                         focus:bg-white/10 min-h-[100px] resize-none transition-all"
               maxLength={280}
             />
             <div className="flex justify-between text-xs text-white/50 mt-1">
@@ -127,12 +127,13 @@ function CreateDebateModal({ isOpen, onClose, onDebateCreated, prefilledDefender
               <select
                 value={defenderId}
                 onChange={(e) => setDefenderId(e.target.value)}
-                className="w-full bg-white/10 border border-white/20 rounded-xl p-4 text-white
-                           focus:outline-none focus:border-[#c9a35e] cursor-pointer"
+                className="w-full bg-white/5 border border-white/20 rounded-xl p-4 text-white
+                           focus:outline-none focus:border-veritas-pink focus:bg-white/10
+                           cursor-pointer transition-all"
               >
-                <option value="" className="bg-[#1a3a52]">Select opponent...</option>
+                <option value="" className="bg-[#1a1625]">Select opponent...</option>
                 {availableOpponents.map(user => (
-                  <option key={user.id} value={user.id} className="bg-[#1a3a52]">
+                  <option key={user.id} value={user.id} className="bg-[#1a1625]">
                     {user.displayName} (@{user.username})
                   </option>
                 ))}
@@ -150,17 +151,17 @@ function CreateDebateModal({ isOpen, onClose, onDebateCreated, prefilledDefender
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-6 py-3 bg-white/10 hover:bg-white/20 rounded-xl font-bold
-                         transition-all duration-300"
+              className="flex-1 px-6 py-3 bg-white/5 border border-white/20 hover:bg-white/10
+                         rounded-xl font-bold transition-all duration-300"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isCreating || !topic.trim() || !defenderId}
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-[#c9a35e] to-[#a68847] 
-                         hover:shadow-lg rounded-xl font-bold transition-all duration-300
-                         disabled:opacity-50 disabled:cursor-not-allowed
+              className="flex-1 px-6 py-3 bg-gradient-to-r from-veritas-pink to-veritas-pink-dark
+                         hover:shadow-[0_4px_12px_rgba(255,107,157,0.3)] rounded-xl font-bold
+                         transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed
                          flex items-center justify-center gap-2"
             >
               {isCreating ? (
