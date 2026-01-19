@@ -100,7 +100,15 @@ public class DebateServiceImpl implements DebateService {
     @Override
     @Transactional(readOnly = true)
     public List<DebateDTO> getActiveDebates() {
-        return debateRepository.findByStatusIn(List.of(DebateStatus.ACTIVE, DebateStatus.VOTING)).stream()
+        return debateRepository.findByStatusIn(List.of(DebateStatus.ACTIVE)).stream()
+                .map(DebateDTO::fromEntity)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<DebateDTO> getCompletedDebates() {
+        return debateRepository.findByStatusIn(List.of(DebateStatus.COMPLETED)).stream()
                 .map(DebateDTO::fromEntity)
                 .toList();
     }

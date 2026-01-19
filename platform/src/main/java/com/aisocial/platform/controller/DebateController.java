@@ -91,6 +91,17 @@ public class DebateController {
     }
 
     /**
+     * List all completed debates.
+     * GET /api/debates/completed
+     */
+    @GetMapping("/completed")
+    public ResponseEntity<List<DebateDTO>> getCompletedDebates() {
+        List<DebateDTO> debates = debateService.getCompletedDebates();
+        return ResponseEntity.ok(debates);
+    }
+
+
+    /**
      * List debates in voting phase.
      * GET /api/debates/voting
      */

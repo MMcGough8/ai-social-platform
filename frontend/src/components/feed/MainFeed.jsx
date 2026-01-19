@@ -11,7 +11,8 @@ import { Search } from 'lucide-react';
 function MainFeed({ debateFilterRequest, onDebateUpdated }) {
   const { currentUser } = useUser();
   const [activeTab, setActiveTab] = useState('following');
-  const [debateFilter, setDebateFilter] = useState('all'); // 'all' or 'invitations'
+  const [debateScope, setDebateScope] = useState('all'); // 'all' or 'mine'
+  const [debateFilter, setDebateFilter] = useState('all'); // 'all', 'pending', 'active', 'voting', 'completed'
   const [posts, setPosts] = useState([]);
   const [debates, setDebates] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,7 +36,7 @@ function MainFeed({ debateFilterRequest, onDebateUpdated }) {
       loadPosts();
       loadPendingCount();
     }
-  }, [currentUser, activeTab, debateFilter]);
+  }, [currentUser, activeTab, debateScope, debateFilter]);
 
   const loadPendingCount = async () => {
     try {
@@ -58,11 +59,8 @@ function MainFeed({ debateFilterRequest, onDebateUpdated }) {
   useEffect(() => {
     if (debateFilterRequest) {
       setActiveTab('debates');
-      if (debateFilterRequest.filter === 'invitations') {
-        setDebateFilter('invitations');
-      } else {
-        setDebateFilter('all');
-      }
+      setDebateScope('mine');
+      setDebateFilter('pending');
     }
   }, [debateFilterRequest]);
 
@@ -206,25 +204,41 @@ function MainFeed({ debateFilterRequest, onDebateUpdated }) {
         setPosts(sortedFeed);
       } else if (activeTab === 'debates') {
         let debatesToShow = [];
-        if (debateFilter === 'invitations') {
-          // Load pending challenges where current user is the defender
-          debatesToShow = await debateService.getPendingChallenges(currentUser.id);
-        } else if (debateFilter === 'active') {
-          // Load only ACTIVE debates (in progress)
-          debatesToShow = await debateService.getActiveDebates();
-        } else if (debateFilter === 'voting') {
-          // Load only VOTING debates
-          debatesToShow = await debateService.getVotingDebates();
-        } else if (debateFilter === 'completed') {
-          // Load completed debates for current user
-          const userDebates = await debateService.getDebatesByUser(currentUser.id);
-          debatesToShow = userDebates.filter(d => d.status === 'COMPLETED');
+        
+        if (debateScope === 'mine') {
+          // My Debates - filter by status
+          if (debateFilter === 'pending') {
+            debatesToShow = await debateService.getPendingChallenges(currentUser.id);
+          } else {
+            // Get all user's debates, then filter
+            const userDebates = await debateService.getDebatesByUser(currentUser.id);
+            if (debateFilter === 'all') {
+              debatesToShow = userDebates;
+            } else if (debateFilter === 'active') {
+              debatesToShow = userDebates.filter(d => d.status === 'ACTIVE');
+            } else if (debateFilter === 'voting') {
+              debatesToShow = userDebates.filter(d => d.status === 'VOTING');
+            } else if (debateFilter === 'completed') {
+              debatesToShow = userDebates.filter(d => d.status === 'COMPLETED');
+            }
+          }
         } else {
-          // 'all' - Load all active and voting debates
-          const activeDebates = await debateService.getActiveDebates();
-          const votingDebates = await debateService.getVotingDebates();
-          debatesToShow = [...activeDebates, ...votingDebates];
+          // All Debates - filter by status
+          if (debateFilter === 'active') {
+            debatesToShow = await debateService.getActiveDebates();
+          } else if (debateFilter === 'voting') {
+            debatesToShow = await debateService.getVotingDebates();
+          } else if (debateFilter === 'completed') {
+            debatesToShow = await debateService.getCompletedDebates();
+          } else {
+            // 'all' - Load all active and voting debates
+            const activeDebates = await debateService.getActiveDebates();
+            const votingDebates = await debateService.getVotingDebates();
+            const completedDebates = await debateService.getCompletedDebates();
+            debatesToShow = [...activeDebates, ...votingDebates, ...completedDebates];
+          }
         }
+        
         const sortedDebates = debatesToShow.sort((a, b) =>
           new Date(b.createdAt) - new Date(a.createdAt)
         );
@@ -273,6 +287,13 @@ function MainFeed({ debateFilterRequest, onDebateUpdated }) {
     setPosts(prevPosts =>
       prevPosts.filter(post => post.id !== postId)
     );
+  };
+
+  // Reset debateFilter when switching scope
+  const handleScopeChange = (newScope) => {
+    setDebateScope(newScope);
+    // Reset to 'all' when switching scope
+    setDebateFilter('all');
   };
 
   if (!currentUser) {
@@ -420,64 +441,103 @@ function MainFeed({ debateFilterRequest, onDebateUpdated }) {
             </div>
           )}
 
-          {/* Debate filter buttons */}
+          {/* Two-Tier Debate Filters */}
           {activeTab === 'debates' && (
-            <div className="p-4 border-b border-white/10 flex gap-2 flex-wrap">
-              <button
-                onClick={() => setDebateFilter('invitations')}
-                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all
-                           ${debateFilter === 'invitations'
-                             ? 'bg-veritas-pink text-white'
-                             : 'bg-white/5 text-white/50 hover:text-white hover:bg-white/10'}`}
-              >
-                Pending
-              </button>
-              <button
-                onClick={() => setDebateFilter('all')}
-                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all
-                           ${debateFilter === 'all'
-                             ? 'bg-veritas-pink text-white'
-                             : 'bg-white/5 text-white/50 hover:text-white hover:bg-white/10'}`}
-              >
-                All
-              </button>
-              <button
-                onClick={() => setDebateFilter('active')}
-                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all
-                           ${debateFilter === 'active'
-                             ? 'bg-veritas-pink text-white'
-                             : 'bg-white/5 text-white/50 hover:text-white hover:bg-white/10'}`}
-              >
-                Active
-              </button>
-              <button
-                onClick={() => setDebateFilter('voting')}
-                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all
-                           ${debateFilter === 'voting'
-                             ? 'bg-veritas-pink text-white'
-                             : 'bg-white/5 text-white/50 hover:text-white hover:bg-white/10'}`}
-              >
-                Voting
-              </button>
-              <button
-                onClick={() => setDebateFilter('completed')}
-                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all
-                           ${debateFilter === 'completed'
-                             ? 'bg-veritas-pink text-white'
-                             : 'bg-white/5 text-white/50 hover:text-white hover:bg-white/10'}`}
-              >
-                Completed
-              </button>
+            <div className="border-b border-white/10">
+              {/* Tier 1: Scope (All vs My) */}
+              <div className="p-4 pb-2 flex gap-3">
+                <button
+                  onClick={() => handleScopeChange('all')}
+                  className={`flex-1 px-5 py-3 rounded-xl text-sm font-bold transition-all
+                             ${debateScope === 'all'
+                               ? 'bg-gradient-to-br from-veritas-pink/30 to-veritas-purple/30 text-white border-2 border-veritas-pink/50'
+                               : 'bg-white/5 text-white/50 hover:text-white hover:bg-white/10 border-2 border-white/10'}`}
+                >
+                  All Debates
+                </button>
+                <button
+                  onClick={() => handleScopeChange('mine')}
+                  className={`flex-1 px-5 py-3 rounded-xl text-sm font-bold transition-all
+                             flex items-center justify-center gap-2
+                             ${debateScope === 'mine'
+                               ? 'bg-gradient-to-br from-veritas-pink/30 to-veritas-purple/30 text-white border-2 border-veritas-pink/50'
+                               : 'bg-white/5 text-white/50 hover:text-white hover:bg-white/10 border-2 border-white/10'}`}
+                >
+                  My Debates
+                  {pendingCount > 0 && debateScope === 'mine' && (
+                    <span className="bg-veritas-pink text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                      {pendingCount}
+                    </span>
+                  )}
+                </button>
+              </div>
+
+              {/* Tier 2: Status Filters */}
+              <div className="px-4 pb-4 flex gap-2 flex-wrap">
+                {/* Show "Pending" only for "My Debates" */}
+                {debateScope === 'mine' && (
+                  <button
+                    onClick={() => setDebateFilter('pending')}
+                    className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all
+                               ${debateFilter === 'pending'
+                                 ? 'bg-veritas-pink text-white'
+                                 : 'bg-white/5 text-white/50 hover:text-white hover:bg-white/10'}`}
+                  >
+                    Pending
+                  </button>
+                )}
+                
+                <button
+                  onClick={() => setDebateFilter('all')}
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all
+                             ${debateFilter === 'all'
+                               ? 'bg-veritas-pink text-white'
+                               : 'bg-white/5 text-white/50 hover:text-white hover:bg-white/10'}`}
+                >
+                  All
+                </button>
+                <button
+                  onClick={() => setDebateFilter('active')}
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all
+                             ${debateFilter === 'active'
+                               ? 'bg-veritas-pink text-white'
+                               : 'bg-white/5 text-white/50 hover:text-white hover:bg-white/10'}`}
+                >
+                  Active
+                </button>
+                <button
+                  onClick={() => setDebateFilter('voting')}
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all
+                             ${debateFilter === 'voting'
+                               ? 'bg-veritas-pink text-white'
+                               : 'bg-white/5 text-white/50 hover:text-white hover:bg-white/10'}`}
+                >
+                  Voting
+                </button>
+                <button
+                  onClick={() => setDebateFilter('completed')}
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all
+                             ${debateFilter === 'completed'
+                               ? 'bg-veritas-pink text-white'
+                               : 'bg-white/5 text-white/50 hover:text-white hover:bg-white/10'}`}
+                >
+                  Completed
+                </button>
+              </div>
             </div>
           )}
 
           {!loading && !error && activeTab === 'debates' && debates.length === 0 && (
             <div className="p-20 text-center text-white/50">
-              {debateFilter === 'invitations' && 'No pending challenges. You have no debate invitations to respond to.'}
-              {debateFilter === 'active' && 'No active debates in progress.'}
-              {debateFilter === 'voting' && 'No debates currently in voting phase.'}
-              {debateFilter === 'completed' && 'No completed debates yet.'}
-              {debateFilter === 'all' && 'No debates found. Create a debate challenge to get started!'}
+              {debateScope === 'mine' && debateFilter === 'pending' && 'No pending challenges. You have no debate invitations to respond to.'}
+              {debateScope === 'mine' && debateFilter === 'active' && 'No active debates in progress.'}
+              {debateScope === 'mine' && debateFilter === 'voting' && 'No debates currently in voting phase.'}
+              {debateScope === 'mine' && debateFilter === 'completed' && 'No completed debates yet.'}
+              {debateScope === 'mine' && debateFilter === 'all' && 'You have no debates yet. Create or accept a debate challenge to get started!'}
+              {debateScope === 'all' && debateFilter === 'active' && 'No active debates found.'}
+              {debateScope === 'all' && debateFilter === 'voting' && 'No debates in voting phase.'}
+              {debateScope === 'all' && debateFilter === 'completed' && 'No completed debates found.'}
+              {debateScope === 'all' && debateFilter === 'all' && 'No debates found. Create a debate challenge to get started!'}
             </div>
           )}
 

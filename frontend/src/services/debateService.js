@@ -22,6 +22,11 @@ const debateService = {
     return response.data;
   },
 
+  getCompletedDebates: async () => {
+    const response = await api.get('/api/debates/completed');
+    return response.data;
+  },
+
   getVotingDebates: async () => {
     const response = await api.get('/api/debates/voting');
     return response.data;

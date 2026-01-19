@@ -25,5 +25,7 @@ public interface DebateService {
 
     List<DebateDTO> getDebatesByUser(UUID userId);
 
+    List<DebateDTO> getCompletedDebates();
+
     List<DebateDTO> getPendingChallengesForUser(UUID userId);
 }
