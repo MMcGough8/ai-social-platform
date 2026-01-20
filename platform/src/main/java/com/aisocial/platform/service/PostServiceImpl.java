@@ -385,6 +385,17 @@ public class PostServiceImpl implements PostService {
             }
         }
 
+        // Parse and set factCheckResult
+        if (post.getFactCheckData() != null && !post.getFactCheckData().isEmpty()) {
+            try {
+                FactCheckResultDTO factCheckResult = objectMapper.readValue(
+                    post.getFactCheckData(), FactCheckResultDTO.class);
+                dto.setFactCheckResult(factCheckResult);
+            } catch (Exception e) {
+                log.warn("Could not parse fact-check data", e);
+            }
+        }
+
         return dto;
     }
 
