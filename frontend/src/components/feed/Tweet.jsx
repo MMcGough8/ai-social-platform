@@ -29,7 +29,7 @@ function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, onPos
 
   // Fact-check state
   const [isFactChecking, setIsFactChecking] = useState(false);
-  const [factCheckResult, setFactCheckResult] = useState(null);
+  const [factCheckResult, setFactCheckResult] = useState(post.factCheckResult || null);
   const [showFactCheckModal, setShowFactCheckModal] = useState(false);
   const [factCheckStatus, setFactCheckStatus] = useState(post.factCheckStatus);
   const [factCheckScore, setFactCheckScore] = useState(post.factCheckScore);
