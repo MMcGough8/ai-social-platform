@@ -16,6 +16,14 @@ const factCheckService = {
     return response.data;
   },
 
+  // Fact-check a debate argument
+  checkArgument: async (argumentId, userId) => {
+    const response = await api.post(`/api/fact-checks/argument/${argumentId}`, null, {
+      headers: userId ? { 'X-User-Id': userId } : {}
+    });
+    return response.data;
+  },
+
   getAll: async () => {
     const response = await api.get('/api/fact-checks');
     return response.data;

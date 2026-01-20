@@ -54,6 +54,21 @@ public class FactCheckController {
     }
 
     // ----------------------------
+    // AI-Powered Fact Check - Check debate argument
+    // ----------------------------
+    @PostMapping("/argument/{argumentId}")
+    public ResponseEntity<FactCheckResultDTO> factCheckArgument(
+            @PathVariable UUID argumentId,
+            @RequestHeader(value = "X-User-Id", required = false) UUID userId) {
+        try {
+            FactCheckResultDTO result = aiFactCheckService.factCheckDebateArgument(argumentId, userId);
+            return ResponseEntity.ok(result);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    // ----------------------------
     // GET All
     // ----------------------------
     @GetMapping

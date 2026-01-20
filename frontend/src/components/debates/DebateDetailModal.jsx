@@ -139,7 +139,12 @@ function DebateDetailModal({ isOpen, onClose, debate: initialDebate, currentUser
               <TurnIndicator debate={debate} currentUserId={currentUserId} />
 
               {/* Arguments Thread */}
-              <ArgumentThread debate={debate} arguments={arguments_} />
+              <ArgumentThread
+                debate={debate}
+                arguments={arguments_}
+                currentUserId={currentUserId}
+                onArgumentUpdated={loadDebateData}
+              />
 
               {/* Argument Composer */}
               <ArgumentComposer

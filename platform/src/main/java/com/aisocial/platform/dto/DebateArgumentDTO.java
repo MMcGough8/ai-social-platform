@@ -15,6 +15,7 @@ public class DebateArgumentDTO {
     private String content;
     private FactCheckStatus factCheckStatus;
     private Double factCheckScore;
+    private String factCheckData;
     private Instant createdAt;
 
     public DebateArgumentDTO() {
@@ -28,6 +29,7 @@ public class DebateArgumentDTO {
         this.content = argument.getContent();
         this.factCheckStatus = argument.getFactCheckStatus();
         this.factCheckScore = argument.getFactCheckScore();
+        this.factCheckData = argument.getFactCheckData();
         this.createdAt = argument.getCreatedAt();
     }
 
@@ -89,6 +91,14 @@ public class DebateArgumentDTO {
 
     public void setFactCheckScore(Double factCheckScore) {
         this.factCheckScore = factCheckScore;
+    }
+
+    public String getFactCheckData() {
+        return factCheckData;
+    }
+
+    public void setFactCheckData(String factCheckData) {
+        this.factCheckData = factCheckData;
     }
 
     public Instant getCreatedAt() {

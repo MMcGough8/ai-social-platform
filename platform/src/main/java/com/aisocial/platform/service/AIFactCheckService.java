@@ -1,9 +1,11 @@
 package com.aisocial.platform.service;
 
 import com.aisocial.platform.dto.FactCheckResultDTO;
+import com.aisocial.platform.entity.DebateArgument;
 import com.aisocial.platform.entity.FactCheck;
 import com.aisocial.platform.entity.FactCheckStatus;
 import com.aisocial.platform.entity.Post;
+import com.aisocial.platform.repository.DebateArgumentRepository;
 import com.aisocial.platform.repository.FactCheckRepository;
 import com.aisocial.platform.repository.PostRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,6 +33,7 @@ public class AIFactCheckService {
     private final ObjectMapper objectMapper;
     private final PostRepository postRepository;
     private final FactCheckRepository factCheckRepository;
+    private final DebateArgumentRepository debateArgumentRepository;
     private final TrustScoreService trustScoreService;
     private final Random random = new Random();
 
@@ -41,11 +44,13 @@ public class AIFactCheckService {
                               ObjectMapper objectMapper,
                               PostRepository postRepository,
                               FactCheckRepository factCheckRepository,
+                              DebateArgumentRepository debateArgumentRepository,
                               TrustScoreService trustScoreService) {
         this.chatClient = chatClientBuilder.build();
         this.objectMapper = objectMapper;
         this.postRepository = postRepository;
         this.factCheckRepository = factCheckRepository;
+        this.debateArgumentRepository = debateArgumentRepository;
         this.trustScoreService = trustScoreService;
     }
 
@@ -215,6 +220,38 @@ public class AIFactCheckService {
 
         // Update author's trust score based on fact-check result
         trustScoreService.updateOnFactCheck(post.getAuthor().getId(), status);
+
+        return result;
+    }
+
+    /**
+     * Fact-check a debate argument by ID and update its status.
+     */
+    @Transactional
+    public FactCheckResultDTO factCheckDebateArgument(UUID argumentId, UUID requestedById) {
+        DebateArgument argument = debateArgumentRepository.findById(argumentId)
+                .orElseThrow(() -> new IllegalArgumentException("Debate argument not found"));
+
+        // Check the claim
+        FactCheckResultDTO result = checkClaim(argument.getContent());
+
+        // Update argument's fact-check status
+        FactCheckStatus status = mapVerdictToStatus(result.getVerdict());
+        argument.setFactCheckStatus(status);
+        argument.setFactCheckScore(result.getConfidence() != null ? result.getConfidence() / 100.0 : null);
+
+        try {
+            argument.setFactCheckData(objectMapper.writeValueAsString(result));
+        } catch (Exception e) {
+            log.warn("Could not serialize fact-check data for argument", e);
+        }
+
+        debateArgumentRepository.save(argument);
+
+        // Update author's trust score based on fact-check result
+        if (argument.getUser() != null) {
+            trustScoreService.updateOnFactCheck(argument.getUser().getId(), status);
+        }
 
         return result;
     }

@@ -1,6 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
+import FactCheckBadge from '../factcheck/FactCheckBadge';
+import FactCheckButton from '../factcheck/FactCheckButton';
+import FactCheckModal from '../factcheck/FactCheckModal';
+import factcheckService from '../../services/factcheckService';
 
-function ArgumentThread({ debate, arguments: args }) {
+function ArgumentThread({ debate, arguments: args, currentUserId, onArgumentUpdated }) {
+  const [loadingArgumentId, setLoadingArgumentId] = useState(null);
+  const [selectedArgument, setSelectedArgument] = useState(null);
+  const [factCheckResult, setFactCheckResult] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   // Group arguments by round
   const rounds = [1, 2, 3];
 
@@ -33,6 +42,85 @@ function ArgumentThread({ debate, arguments: args }) {
     });
   };
 
+  const handleFactCheck = async (argument) => {
+    setLoadingArgumentId(argument.id);
+    try {
+      const result = await factcheckService.checkArgument(argument.id, currentUserId);
+      setFactCheckResult(result);
+      setSelectedArgument(argument);
+      setIsModalOpen(true);
+      // Notify parent to refresh arguments data
+      if (onArgumentUpdated) {
+        onArgumentUpdated();
+      }
+    } catch (error) {
+      console.error('Error fact-checking argument:', error);
+      setFactCheckResult({ error: 'Failed to fact-check argument. Please try again.' });
+      setSelectedArgument(argument);
+      setIsModalOpen(true);
+    } finally {
+      setLoadingArgumentId(null);
+    }
+  };
+
+  const handleViewFactCheck = (argument) => {
+    // Parse stored fact-check data if available
+    if (argument.factCheckData) {
+      try {
+        const parsedData = JSON.parse(argument.factCheckData);
+        setFactCheckResult(parsedData);
+      } catch (e) {
+        setFactCheckResult({
+          verdict: argument.factCheckStatus,
+          confidence: argument.factCheckScore ? argument.factCheckScore * 100 : null
+        });
+      }
+    } else {
+      setFactCheckResult({
+        verdict: argument.factCheckStatus,
+        confidence: argument.factCheckScore ? argument.factCheckScore * 100 : null
+      });
+    }
+    setSelectedArgument(argument);
+    setIsModalOpen(true);
+  };
+
+  const renderArgumentContent = (arg, label) => {
+    if (!arg) return null;
+
+    const isChecked = arg.factCheckStatus && arg.factCheckStatus !== 'UNCHECKED';
+    const isLoading = loadingArgumentId === arg.id;
+
+    return (
+      <div>
+        <p className="text-white/90 text-sm leading-relaxed">
+          {arg.content}
+        </p>
+        <div className="flex items-center justify-between mt-2">
+          <p className="text-white/40 text-xs">
+            {formatTime(arg.createdAt)}
+          </p>
+          <div className="flex items-center gap-2">
+            {isChecked ? (
+              <FactCheckBadge
+                status={arg.factCheckStatus}
+                score={arg.factCheckScore}
+                size="xs"
+                onClick={() => handleViewFactCheck(arg)}
+              />
+            ) : (
+              <FactCheckButton
+                onClick={() => handleFactCheck(arg)}
+                isLoading={isLoading}
+                isChecked={false}
+              />
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-4">
       {rounds.map((round) => {
@@ -57,14 +145,7 @@ function ArgumentThread({ debate, arguments: args }) {
                   Challenger
                 </div>
                 {challengerArg ? (
-                  <div>
-                    <p className="text-white/90 text-sm leading-relaxed">
-                      {challengerArg.content}
-                    </p>
-                    <p className="text-white/40 text-xs mt-2">
-                      {formatTime(challengerArg.createdAt)}
-                    </p>
-                  </div>
+                  renderArgumentContent(challengerArg, 'Challenger')
                 ) : (
                   debate.currentRound === round && isWaitingForChallenger ? (
                     <div className="text-white/30 text-sm italic">
@@ -82,14 +163,7 @@ function ArgumentThread({ debate, arguments: args }) {
                   Defender
                 </div>
                 {defenderArg ? (
-                  <div>
-                    <p className="text-white/90 text-sm leading-relaxed">
-                      {defenderArg.content}
-                    </p>
-                    <p className="text-white/40 text-xs mt-2">
-                      {formatTime(defenderArg.createdAt)}
-                    </p>
-                  </div>
+                  renderArgumentContent(defenderArg, 'Defender')
                 ) : (
                   debate.currentRound === round && isWaitingForDefender ? (
                     <div className="text-white/30 text-sm italic">
@@ -114,6 +188,18 @@ function ArgumentThread({ debate, arguments: args }) {
           No arguments yet. The debate is just getting started!
         </div>
       )}
+
+      {/* Fact Check Modal */}
+      <FactCheckModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedArgument(null);
+          setFactCheckResult(null);
+        }}
+        result={factCheckResult}
+        postContent={selectedArgument?.content}
+      />
     </div>
   );
 }
