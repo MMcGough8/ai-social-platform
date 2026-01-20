@@ -121,7 +121,7 @@ function TrustScoreBadge({ score, size = 'md', showTooltip = true, userId = null
           border cursor-default
           ${tierInfo.color} ${tierInfo.bg} ${tierInfo.border}
           ${tierInfo.hoverBg} ${tierInfo.hoverBorder}
-          ${sizeClasses[size] || sizeClasses.md}
+          ${sizeClasses.xs}
           transition-all duration-300 ease-out
           ${isHovered 
             ? `scale-125 brightness-125 shadow-lg ${tierInfo.glow} -translate-y-0.5 ring-2 ring-offset-2 ring-offset-[#0f0519] ${ringColor}` 

@@ -10,7 +10,7 @@ import { MessageCircle, Repeat2, Heart } from 'lucide-react';
 import logo from '../../assets/CondorTransparent.png';
 import DebateChallengeButton from '../debates/DebateChallengeButton';
 
-function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, onPostDeleted, canDelete = false, depth = 0 }) {
+function Tweet({ post, currentUserId, onPostUpdated, onFactCheckCompleted, onAuthorFollowChange, onPostDeleted, canDelete = false, depth = 0 }) {
   const [isLiked, setIsLiked] = useState(post.isLikedByCurrentUser || false);
   const [isLiking, setIsLiking] = useState(false);
   const [localLikeCount, setLocalLikeCount] = useState(post.likeCount || 0);
@@ -19,6 +19,7 @@ function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, onPos
   const [isFollowHovering, setIsFollowHovering] = useState(false);
   const [showReplyModal, setShowReplyModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [clickY, setClickY] = useState(0);
   
   // Reply state
   const [replies, setReplies] = useState([]);
@@ -32,6 +33,7 @@ function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, onPos
   const [showFactCheckModal, setShowFactCheckModal] = useState(false);
   const [factCheckStatus, setFactCheckStatus] = useState(post.factCheckStatus);
   const [factCheckScore, setFactCheckScore] = useState(post.factCheckScore);
+  const [needsRefreshAfterModal, setNeedsRefreshAfterModal] = useState(false);
 
   // Repost state
   const [isReposted, setIsReposted] = useState(post.isRepostedByCurrentUser || false);
@@ -182,7 +184,8 @@ function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, onPos
   };
 
   // Fact-check handlers
-  const handleFactCheck = async () => {
+  const handleFactCheck = async (e) => {
+    setClickY(e.clientY);
     // If already checked, just show the modal
     if (factCheckStatus && factCheckStatus !== 'UNCHECKED') {
       setShowFactCheckModal(true);
@@ -202,8 +205,9 @@ function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, onPos
 
       setShowFactCheckModal(true);
 
-      if (onPostUpdated) {
-        onPostUpdated();
+      // Mark that we need to refresh after modal closes (don't refresh immediately)
+      if (onFactCheckCompleted) {
+        setNeedsRefreshAfterModal(true);
       }
     } catch (error) {
       console.error('Error fact-checking post:', error);
@@ -214,8 +218,19 @@ function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, onPos
     }
   };
 
-  const handleViewFactCheck = () => {
+  const handleViewFactCheck = (e) => {
+    setClickY(e.clientY);
     setShowFactCheckModal(true);
+  };
+
+  const handleCloseFactCheckModal = () => {
+    setShowFactCheckModal(false);
+    
+    // If fact-check just completed, refresh user data now that modal is closed
+    if (needsRefreshAfterModal && onFactCheckCompleted) {
+      onFactCheckCompleted(post);
+      setNeedsRefreshAfterModal(false);
+    }
   };
 
   const handleDelete = async (e) => {
@@ -286,7 +301,7 @@ function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, onPos
               {author.trustScore != null && (
                 <TrustScoreBadge
                   score={author.trustScore}
-                  size="xs"
+                  size="sm"
                   showTooltip={true}
                   userId={author.id}
                 />
@@ -442,6 +457,7 @@ function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, onPos
               post={reply}
               currentUserId={currentUserId}
               onPostUpdated={onPostUpdated}
+              onFactCheckCompleted={onFactCheckCompleted}
               onAuthorFollowChange={onAuthorFollowChange}
               depth={depth + 1}
             />
@@ -469,9 +485,10 @@ function Tweet({ post, currentUserId, onPostUpdated, onAuthorFollowChange, onPos
       {/* Fact Check Modal */}
       <FactCheckModal
         isOpen={showFactCheckModal}
-        onClose={() => setShowFactCheckModal(false)}
+        onClose={handleCloseFactCheckModal}
         result={factCheckResult}
         postContent={content}
+        clickY={clickY}
       />
     </div>
   );

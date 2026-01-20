@@ -10,6 +10,7 @@ function SearchResults({
   loading, 
   currentUserId,
   onPostUpdated,
+  onFactCheckCompleted,
   onAuthorFollowChange,
   onUserClick,
   onLoadMoreUsers,
@@ -78,7 +79,7 @@ function SearchResults({
                       {user.trustScore != null && (
                         <TrustScoreBadge
                           score={user.trustScore}
-                          size="xs"
+                          size="sm"
                           showTooltip={true}
                           userId={user.id}
                         />
@@ -121,6 +122,7 @@ function SearchResults({
                 post={post}
                 currentUserId={currentUserId}
                 onPostUpdated={onPostUpdated}
+                onFactCheckCompleted={onFactCheckCompleted}
                 onAuthorFollowChange={onAuthorFollowChange}
               />
             ))}

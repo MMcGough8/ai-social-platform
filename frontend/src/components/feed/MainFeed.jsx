@@ -8,8 +8,8 @@ import debateService from '../../services/debateService';
 import DebateCard from '../debates/DebateCard';
 import { Search } from 'lucide-react';
 
-function MainFeed({ debateFilterRequest, onDebateUpdated }) {
-  const { currentUser } = useUser();
+function MainFeed({ refreshTrigger, debateFilterRequest, onDebateUpdated }) {
+  const { currentUser, updateCurrentUser } = useUser();
   const [activeTab, setActiveTab] = useState('following');
   const [debateScope, setDebateScope] = useState('all'); // 'all' or 'mine'
   const [debateFilter, setDebateFilter] = useState('all'); // 'all', 'pending', 'active', 'voting', 'completed'
@@ -42,6 +42,13 @@ function MainFeed({ debateFilterRequest, onDebateUpdated }) {
       loadPendingCount();
     }
   }, [currentUser, activeTab, debateScope, debateFilter]);
+
+  // Reload posts when a new post is created (refreshTrigger from Layout)
+  useEffect(() => {
+    if (currentUser && refreshTrigger > 0) {
+      loadPosts();
+    }
+  }, [refreshTrigger]);
 
   const loadPendingCount = async () => {
     try {
@@ -281,6 +288,25 @@ function MainFeed({ debateFilterRequest, onDebateUpdated }) {
     }
   };
 
+  const handleFactCheckCompleted = async (updatedPost) => {
+    // Update the post in the list
+    if (updatedPost) {
+      setPosts(prevPosts => 
+        prevPosts.map(post => 
+          post.id === updatedPost.id ? updatedPost : post
+        )
+      );
+    }
+    
+    // Refresh current user data to update trust score
+    try {
+      const refreshedUser = await userService.getUserById(currentUser.id);
+      updateCurrentUser(refreshedUser);
+    } catch (error) {
+      console.error('Error refreshing user data after fact-check:', error);
+    }
+  };
+
   const handleAuthorFollowChange = (authorId, isNowFollowing) => {
     setPosts(prevPosts =>
       prevPosts.map(post => {
@@ -343,7 +369,7 @@ function MainFeed({ debateFilterRequest, onDebateUpdated }) {
                        : 'text-white/50 hover:text-white/80 hover:bg-white/5'}`}
           onClick={() => setActiveTab('yourPosts')}
         >
-          My Posts
+          Your Posts
         </div>
         <div
           className={`flex-1 p-3.5 text-center font-bold cursor-pointer
@@ -523,6 +549,7 @@ function MainFeed({ debateFilterRequest, onDebateUpdated }) {
           loading={searchLoading}
           currentUserId={currentUser.id}
           onPostUpdated={handlePostUpdated}
+          onFactCheckCompleted={handleFactCheckCompleted}
           onAuthorFollowChange={handleAuthorFollowChange}
           onUserClick={handleUserClick}
           onLoadMoreUsers={loadMoreUsers}
@@ -652,6 +679,7 @@ function MainFeed({ debateFilterRequest, onDebateUpdated }) {
                   post={post}
                   currentUserId={currentUser.id}
                   onPostUpdated={handlePostUpdated}
+                  onFactCheckCompleted={handleFactCheckCompleted}
                   onAuthorFollowChange={handleAuthorFollowChange}
                   canDelete={activeTab === 'yourPosts'}
                   onPostDeleted={handlePostDeleted}

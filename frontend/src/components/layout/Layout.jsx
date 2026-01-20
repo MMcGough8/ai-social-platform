@@ -28,7 +28,11 @@ function Layout() {
                       md:grid-cols-[80px_1fr_300px]
                       lg:grid-cols-[280px_1fr_380px]">
         <Sidebar onNavigateToDebates={handleNavigateToDebates} debateRefreshTrigger={debateRefreshTrigger} />
-        <MainFeed refreshTrigger={refreshTrigger} debateFilterRequest={debateFilterRequest} onDebateUpdated={handleDebateUpdated} />
+        <MainFeed 
+          refreshTrigger={refreshTrigger} 
+          debateFilterRequest={debateFilterRequest} 
+          onDebateUpdated={handleDebateUpdated} 
+        />
         <RightSidebar onPostCreated={handlePostCreated} />
       </div>
     </div>
