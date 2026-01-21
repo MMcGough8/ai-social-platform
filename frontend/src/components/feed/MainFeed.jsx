@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useUser } from '../../context/UserContext';
 import postService from '../../services/postService';
 import userService from '../../services/userService';
+import followService from '../../services/followService';
 import Tweet from './Tweet';
 import SearchResults from './SearchResults';
 import debateService from '../../services/debateService';
@@ -36,12 +37,27 @@ function MainFeed({ refreshTrigger, debateFilterRequest, onDebateUpdated }) {
   const [maxTrustScore, setMaxTrustScore] = useState('');
   const [showFilters, setShowFilters] = useState(false);
 
+  // Local follow state to persist across searches
+  const [followState, setFollowState] = useState(new Map());
+
   useEffect(() => {
     if (currentUser) {
       loadPosts();
       loadPendingCount();
     }
   }, [currentUser, activeTab, debateScope, debateFilter]);
+
+  // Load initial follow state only when currentUser changes
+  useEffect(() => {
+    if (currentUser) {
+      // Clear previous user's follow state and load new user's follow relationships
+      setFollowState(new Map());
+      loadInitialFollowState();
+    } else {
+      // Clear follow state if no user is logged in
+      setFollowState(new Map());
+    }
+  }, [currentUser]);
 
   // Reload posts when a new post is created (refreshTrigger from Layout)
   useEffect(() => {
@@ -56,6 +72,27 @@ function MainFeed({ refreshTrigger, debateFilterRequest, onDebateUpdated }) {
       setPendingCount(pending.length);
     } catch (err) {
       console.error('Error loading pending count:', err);
+    }
+  };
+
+  const loadInitialFollowState = async () => {
+    try {
+      // Load the user's current following list
+      const followingList = await followService.getFollowing(currentUser.id);
+      
+      // Populate the follow state cache
+      const newFollowState = new Map();
+      if (Array.isArray(followingList)) {
+        followingList.forEach(user => {
+          newFollowState.set(user.id, true);
+        });
+      }
+      
+      setFollowState(newFollowState);
+    } catch (err) {
+      console.error('Error loading initial follow state:', err);
+      // Set empty map on error so app doesn't break
+      setFollowState(new Map());
     }
   };
 
@@ -106,6 +143,7 @@ function MainFeed({ refreshTrigger, debateFilterRequest, onDebateUpdated }) {
         searchPromises.push(
           userService.searchUsers({
             query: searchQuery,
+            currentUserId: currentUser.id, // Include current user ID for follow status
             minTrustScore: minTrustScore ? parseFloat(minTrustScore) : null,
             maxTrustScore: maxTrustScore ? parseFloat(maxTrustScore) : null,
             page: 0,
@@ -131,7 +169,10 @@ function MainFeed({ refreshTrigger, debateFilterRequest, onDebateUpdated }) {
 
       const [usersResponse, postsResponse] = await Promise.all(searchPromises);
 
-      setUserResults(usersResponse.content || []);
+      const rawUsers = usersResponse.content || [];
+      const usersWithFollowState = applyFollowStateToUsers(rawUsers);
+      
+      setUserResults(usersWithFollowState);
       setPostResults(postsResponse.content || []);
       setHasMoreUsers(!usersResponse.last);
       setHasMorePosts(!postsResponse.last);
@@ -149,13 +190,17 @@ function MainFeed({ refreshTrigger, debateFilterRequest, onDebateUpdated }) {
     try {
       const response = await userService.searchUsers({
         query: searchQuery,
+        currentUserId: currentUser.id, // Include current user ID for follow status
         minTrustScore: minTrustScore ? parseFloat(minTrustScore) : null,
         maxTrustScore: maxTrustScore ? parseFloat(maxTrustScore) : null,
         page: nextPage,
         size: 20
       });
 
-      setUserResults(prev => [...prev, ...(response.content || [])]);
+      const rawUsers = response.content || [];
+      const usersWithFollowState = applyFollowStateToUsers(rawUsers);
+      
+      setUserResults(prev => [...prev, ...usersWithFollowState]);
       setUserPage(nextPage);
       setHasMoreUsers(!response.last);
     } catch (err) {
@@ -187,6 +232,38 @@ function MainFeed({ refreshTrigger, debateFilterRequest, onDebateUpdated }) {
     window.location.href = `/profile/${user.username}`;
   };
 
+  // Apply local follow state to user results
+  const applyFollowStateToUsers = (users) => {
+    return users.map(user => ({
+      ...user,
+      isFollowing: followState.has(user.id) ? followState.get(user.id) : (user.isFollowing || false)
+    }));
+  };
+
+  // Add handler for follow changes in search results
+  const handleUserFollowChange = (userId, newFollowStatus) => {
+    // Update local follow state for persistence
+    setFollowState(prev => {
+      const newState = new Map(prev);
+      newState.set(userId, newFollowStatus);
+      return newState;
+    });
+
+    // Update search results to reflect the new follow status
+    setUserResults(prevUsers => 
+      prevUsers.map(user => 
+        user.id === userId 
+          ? { ...user, isFollowing: newFollowStatus }
+          : user
+      )
+    );
+
+    // Refresh the feed when following OR unfollowing if we're on the Following tab
+    if (activeTab === 'following') {
+      loadPosts(); // Refresh to add new followed user's posts or remove unfollowed user's posts
+    }
+  };
+
   const clearSearch = () => {
     setSearchQuery('');
     setSearchActive(false);
@@ -195,6 +272,7 @@ function MainFeed({ refreshTrigger, debateFilterRequest, onDebateUpdated }) {
     setMinTrustScore('');
     setMaxTrustScore('');
     setShowFilters(false);
+    // Note: We keep followState intact so follow relationships persist
   };
 
   const loadPosts = async () => {
@@ -209,7 +287,7 @@ function MainFeed({ refreshTrigger, debateFilterRequest, onDebateUpdated }) {
           new Date(b.createdAt) - new Date(a.createdAt)
         );
         setPosts(sortedFeed);
-      } else if (activeTab === 'yourPosts') {
+      } else if (activeTab === 'myPosts') {
         feed = await postService.searchPosts({
           authorId: currentUser.id,
           viewerId: currentUser.id,
@@ -248,7 +326,7 @@ function MainFeed({ refreshTrigger, debateFilterRequest, onDebateUpdated }) {
           } else if (debateFilter === 'voting') {
             debatesToShow = await debateService.getVotingDebates();
           } else if (debateFilter === 'completed') {
-            debatesToShow = debateService.getCompletedDebates();
+            debatesToShow = await debateService.getCompletedDebates();
           } else {
             const activeDebates = await debateService.getActiveDebates();
             const votingDebates = await debateService.getVotingDebates();
@@ -304,6 +382,14 @@ function MainFeed({ refreshTrigger, debateFilterRequest, onDebateUpdated }) {
   };
 
   const handleAuthorFollowChange = (authorId, isNowFollowing) => {
+    // Update local follow state for persistence across searches
+    setFollowState(prev => {
+      const newState = new Map(prev);
+      newState.set(authorId, isNowFollowing);
+      return newState;
+    });
+
+    // Update posts to reflect the new follow status
     setPosts(prevPosts =>
       prevPosts.map(post => {
         if (post.author.id === authorId) {
@@ -318,6 +404,11 @@ function MainFeed({ refreshTrigger, debateFilterRequest, onDebateUpdated }) {
         return post;
       })
     );
+
+    // Refresh the feed when following OR unfollowing if we're on the Following tab
+    if (activeTab === 'following') {
+      loadPosts(); // Refresh to add new followed user's posts or remove unfollowed user's posts
+    }
   };
 
   const handlePostDeleted = (postId) => {
@@ -360,12 +451,12 @@ function MainFeed({ refreshTrigger, debateFilterRequest, onDebateUpdated }) {
         <div 
           className={`flex-1 p-3.5 text-center font-bold cursor-pointer relative 
                      text-[15px] rounded-xl transition-all duration-300
-                     ${activeTab === 'yourPosts' 
+                     ${activeTab === 'myPosts' 
                        ? 'text-white bg-gradient-to-br from-veritas-pink/20 to-veritas-purple/20' 
                        : 'text-white/50 hover:text-white/80 hover:bg-white/5'}`}
-          onClick={() => setActiveTab('yourPosts')}
+          onClick={() => setActiveTab('myPosts')}
         >
-          Your Posts
+          My Posts
         </div>
         <div
           className={`flex-1 p-3.5 text-center font-bold cursor-pointer
@@ -552,6 +643,7 @@ function MainFeed({ refreshTrigger, debateFilterRequest, onDebateUpdated }) {
           onLoadMorePosts={loadMorePosts}
           hasMoreUsers={hasMoreUsers}
           hasMorePosts={hasMorePosts}
+          onUserFollowChange={handleUserFollowChange}
         />
       ) : (
         <>
@@ -677,7 +769,7 @@ function MainFeed({ refreshTrigger, debateFilterRequest, onDebateUpdated }) {
                   onPostUpdated={handlePostUpdated}
                   onFactCheckCompleted={handleFactCheckCompleted}
                   onAuthorFollowChange={handleAuthorFollowChange}
-                  canDelete={activeTab === 'yourPosts'}
+                  canDelete={activeTab === 'myPosts'}
                   onPostDeleted={handlePostDeleted}
                 />
               ))}

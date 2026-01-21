@@ -256,8 +256,8 @@ function Tweet({ post, currentUserId, onPostUpdated, onFactCheckCompleted, onAut
     }
   };
 
-  // For reposts, check against the displayed author (original post author)
-  const isOwnPost = currentUserId === author?.id;
+  // Make sure only the owner of a post can delete
+  const isOwnPost = currentUserId;
 
   // Indent for nested replies (max depth to prevent too much nesting)
   const maxDepth = 3;
