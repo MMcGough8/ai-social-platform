@@ -256,9 +256,6 @@ function Tweet({ post, currentUserId, onPostUpdated, onFactCheckCompleted, onAut
     }
   };
 
-  // Make sure only the owner of a post can delete
-  const isOwnPost = currentUserId;
-
   // Indent for nested replies (max depth to prevent too much nesting)
   const maxDepth = 3;
   const effectiveDepth = Math.min(depth, maxDepth);
@@ -322,7 +319,7 @@ function Tweet({ post, currentUserId, onPostUpdated, onFactCheckCompleted, onAut
 
             {/* Right side: Follow button OR Delete button - fixed width for alignment */}
             <div className="flex-shrink-0 w-[100px]">
-              {canDelete && isOwnPost ? (
+              {canDelete ? (
                 <button
                   onClick={handleDelete}
                   disabled={isDeleting}
@@ -337,7 +334,7 @@ function Tweet({ post, currentUserId, onPostUpdated, onFactCheckCompleted, onAut
                   {isDeleting ? 'Deleting…' : 'Delete'}
                 </button>
               ) : (
-                !isOwnPost && currentUserId && (
+                currentUserId && (
                   <button
                     onClick={handleFollowToggle}
                     onMouseEnter={() => setIsFollowHovering(true)}
