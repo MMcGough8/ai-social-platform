@@ -1,4 +1,4 @@
-# Veritas
+# Candor
 
 An AI-augmented micro-social platform for short-form discussion, fact-checking, and structured debate.
 
